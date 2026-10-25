@@ -1,0 +1,885 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="https://w.soundcloud.com/player/api.js"></script>
+<script src="lateset-tracks.js"></script>
+<title>Lateset Prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Syne:wght@800&display=swap">
+<style>
+/* Layout: one 390×844 phone on the pink wall. Screens stack inside it; the glass tab bar floats on top.
+   Tokens use the real CSS names from the Figma variables (code syntax), Pink theme values. */
+:root {
+  color-scheme: light;
+  /* Color — semantic */
+  --color-ink: #520b2c;            /* color/text/primary */
+  --color-ink-muted: #771040;      /* color/text/secondary */
+  --color-on-accent: #ffffff;      /* color/text/on-accent */
+  --color-accent: #9c1450;         /* color/accent/default */
+  --color-live: #e0123f;           /* color/status/live */
+  --color-on-air: #b80d33;         /* color/status/on-air */
+  --color-control: #ffffff;        /* color/surface/control */
+  --color-divider: #7710401f;      /* color/border/divider */
+  --color-wall-top: #fce8f0;
+  --color-wall-mid: #f9d1e1;
+  --color-wall-bottom: #f3a7c5;
+  /* Genre gradients */
+  --color-genre-house: #c2185b;   --color-genre-house-end: #df4f88;
+  --color-genre-lofi: #d2296f;    --color-genre-lofi-end: #df4f88;
+  --color-genre-techno: #9c1450;  --color-genre-techno-end: #d2296f;
+  --color-genre-jazz: #771040;    --color-genre-jazz-end: #c2185b;
+  --color-genre-ambient: #520b2c; --color-genre-ambient-end: #9c1450;
+  /* Cover art */
+  --color-art-deep-start: #df4f88; --color-art-deep-mid: #d2296f; --color-art-deep-end: #771040;
+  --color-art-blush-start: #eb7ba7; --color-art-blush-end: #df4f88;
+  /* Glass */
+  --glass-fill: #ffffff52;
+  --glass-fill-chip: #ffffff59;
+  --glass-fill-control: #ffffff8c;
+  --glass-fill-raised: #ffffff73;
+  --glass-fill-elevated: #ffffffad;
+  --glass-fill-subtle: #ffffff42;
+  --glass-stroke: #ffffffbf;
+  --glass-stroke-strong: #fffffff2;
+  --glass-highlight: #ffffffcc;
+  --glass-blur-sm: 16px; --glass-blur-md: 22px; --glass-blur-lg: 24px;
+  /* Shadows */
+  --shadow-soft: #7710401f; --shadow-medium: #77104029; --shadow-elevated: #7710402e;
+  --shadow-control: #77104040; --shadow-art: #7710404d;
+  /* Spacing (Tailwind scale) */
+  --spacing-1: 4px; --spacing-1_5: 6px; --spacing-2: 8px; --spacing-2_5: 10px; --spacing-3: 12px;
+  --spacing-3_5: 14px; --spacing-4: 16px; --spacing-5: 20px; --spacing-6: 24px; --spacing-7: 28px;
+  /* Radius */
+  --radius-card: 24px; --radius-nav: 32px; --radius-panel: 32px; --radius-art: 24px;
+  --radius-tile: 16px; --radius-tile-sm: 12px; --radius-badge: 6px; --radius-pill: 9999px;
+  /* Size */
+  --size-touch-min: 44px; --size-play-lg: 84px; --size-play-md: 76px;
+  /* Motion */
+  --motion-duration-fast: 150ms; --motion-duration-base: 250ms; --motion-duration-slow: 400ms;
+  --motion-duration-eq: 900ms; --motion-duration-pulse: 1600ms;
+  --motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-easing-emphasized: cubic-bezier(0.3, 0, 0, 1.2);
+  --motion-easing-exit: cubic-bezier(0.4, 0, 1, 1);
+  --motion-easing-loop: ease-in-out;
+  --motion-easing-spring: cubic-bezier(0.3, 0, 0, 1.4); /* press release, bounce 0.4 */
+  /* Type */
+  --font-display: "Syne", "Arial Black", system-ui, sans-serif;
+  --font-ui: "Manrope", "Avenir Next", system-ui, -apple-system, sans-serif;
+  --tabbar-clearance: 92px; /* no Figma token yet */
+}
+
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: linear-gradient(165deg, var(--color-wall-top), var(--color-wall-mid) 55%, var(--color-wall-bottom));
+  background-attachment: fixed;
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-weight: 500;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: var(--spacing-5);
+  box-sizing: border-box;
+  display: flex; flex-direction: column; align-items: center; gap: var(--spacing-3);
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer;
+  transition: transform var(--motion-duration-base) var(--motion-easing-spring), background-color var(--motion-duration-fast) var(--motion-easing-standard), color var(--motion-duration-fast) var(--motion-easing-standard); }
+button:active { transform: scale(.96); transition-duration: var(--motion-duration-fast); transition-timing-function: var(--motion-easing-standard); }
+:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 3px; }
+
+.note { font-size: 12px; font-weight: 600; color: var(--color-ink-muted); text-align: center; max-width: 390px; margin: 0; }
+.note:empty { display: none; }
+.note-bar { display: flex; flex-direction: column; align-items: center; gap: var(--spacing-2); }
+.motion-toggle { min-height: var(--size-touch-min); padding-inline: var(--spacing-4); border-radius: var(--radius-pill); font-size: 13px; font-weight: 700; }
+.motion-toggle[aria-pressed="true"] { background: var(--color-accent); color: var(--color-on-accent); border-color: var(--color-accent); box-shadow: none; }
+
+/* Phone */
+/* Exact iPhone screen (390×844 pt). The whole phone scales down to fit, so the layout never changes shape. */
+.stage { --s: 1; width: calc(390px * var(--s)); height: calc(844px * var(--s)); flex-shrink: 0; }
+.phone {
+  position: relative; width: 390px; height: 844px;
+  transform: scale(var(--s)); transform-origin: 0 0;
+  border-radius: 55px; overflow: hidden;
+  background: linear-gradient(165deg, var(--color-wall-top), var(--color-wall-mid) 55%, var(--color-wall-bottom));
+  border: 1px solid var(--glass-stroke);
+  box-shadow: 0 24px 60px var(--shadow-medium);
+  isolation: isolate;
+}
+.screen {
+  position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden;
+  padding: var(--spacing-7) var(--spacing-6) var(--tabbar-clearance);
+  display: flex; flex-direction: column; gap: var(--spacing-5);
+  scrollbar-width: none;
+}
+.screen::-webkit-scrollbar { display: none; }
+.overlay { background: linear-gradient(165deg, var(--color-wall-top), var(--color-wall-mid) 55%, var(--color-wall-bottom)); z-index: 2; padding-top: var(--spacing-6); gap: var(--spacing-4); }
+.overlay { will-change: clip-path, opacity; }
+
+/* Type */
+.display { font-family: var(--font-display); font-weight: 800; font-size: 34px; line-height: .95; text-transform: uppercase; margin: 0; letter-spacing: 0; }
+.eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin: 0; }
+.title-lg { font-size: 24px; font-weight: 700; line-height: 1.25; letter-spacing: -.01em; margin: 0; }
+.title-md { font-size: 16px; font-weight: 700; line-height: 1.3; margin: 0; }
+.title-sm { font-size: 15px; font-weight: 700; line-height: 1.3; margin: 0; }
+.body-md { font-size: 16px; font-weight: 500; line-height: 1.4; color: var(--color-ink-muted); margin: 0; }
+.body-sm { font-size: 13px; font-weight: 500; line-height: 1.4; color: var(--color-ink-muted); margin: 0; }
+.caption { font-size: 12px; font-weight: 600; line-height: 1.3; color: var(--color-ink-muted); }
+.time { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tnum { font-variant-numeric: tabular-nums; }
+.clip { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+
+/* Glass — full recipe per level */
+.glass-card {
+  background: var(--glass-fill); border: 1px solid var(--glass-stroke); border-radius: var(--radius-card);
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(140%); -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(140%);
+  box-shadow: 0 10px 24px var(--shadow-soft), inset 0 1px 0 var(--glass-highlight);
+}
+.glass-elevated {
+  background: var(--glass-fill-elevated); border: 1px solid var(--glass-stroke-strong); border-radius: var(--radius-card);
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(140%); -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(140%);
+  box-shadow: 0 14px 32px var(--shadow-elevated), inset 0 1px 0 var(--glass-highlight);
+}
+.glass-subtle {
+  background: var(--glass-fill-subtle); border: 1px solid var(--glass-stroke); border-radius: var(--radius-panel);
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(140%); -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(140%);
+  box-shadow: 0 24px 50px var(--shadow-medium), inset 0 1px 0 var(--glass-highlight);
+}
+.glass-raised {
+  background: var(--glass-fill-raised); border: 1px solid var(--glass-stroke); border-radius: var(--radius-nav);
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(140%); -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(140%);
+  box-shadow: 0 12px 28px var(--shadow-medium), inset 0 1px 0 var(--glass-highlight);
+}
+.glass-chip {
+  background: var(--glass-fill-chip); border: 1px solid var(--glass-stroke);
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(140%); -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(140%);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
+}
+
+/* Badge */
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 2px var(--spacing-1_5); border-radius: var(--radius-badge); background: var(--color-live); color: var(--color-on-accent); font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; line-height: 1.3; }
+.badge.on-air { background: var(--color-on-air); }
+.badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-on-accent); }
+.badge .dot { position: relative; }
+:root[data-motion="full"] .badge .dot.pulse { animation: breathe var(--motion-duration-pulse) var(--motion-easing-loop) infinite; }
+:root[data-motion="full"] .badge .dot.pulse::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid var(--color-on-accent); animation: ring var(--motion-duration-pulse) var(--motion-easing-loop) infinite; }
+@keyframes breathe { 50% { transform: scale(.8); } }
+@keyframes ring { from { transform: scale(1); opacity: .9; } to { transform: scale(2.6); opacity: 0; } }
+
+/* Chips */
+.chips { display: flex; gap: var(--spacing-2); overflow-x: auto; margin-inline: calc(-1 * var(--spacing-6)); padding: 2px var(--spacing-6); scrollbar-width: none; flex-shrink: 0; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex-shrink: 0; height: 40px; padding: 0 var(--spacing-4); border-radius: var(--radius-pill); font-size: 14px; font-weight: 700; }
+.chip[aria-pressed="true"], .day[aria-pressed="true"] { background: var(--color-accent); color: var(--color-on-accent); border-color: var(--color-accent); box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+
+/* DJ tile */
+.tile { flex-shrink: 0; width: 64px; height: 64px; border-radius: var(--radius-tile); display: grid; place-items: center; color: var(--color-on-accent); font-family: var(--font-display); font-weight: 800; font-size: 22px; letter-spacing: -.04em; box-shadow: 0 8px 18px var(--shadow-soft); }
+.tile.sm { width: 48px; height: 48px; border-radius: var(--radius-tile-sm); font-size: 17px; }
+.tile.round { border-radius: var(--radius-pill); }
+.g-house { background: linear-gradient(135deg, var(--color-genre-house), var(--color-genre-house-end)); }
+.g-lofi { background: linear-gradient(135deg, var(--color-genre-lofi), var(--color-genre-lofi-end)); }
+.g-techno { background: linear-gradient(135deg, var(--color-genre-techno), var(--color-genre-techno-end)); }
+.g-jazz { background: linear-gradient(135deg, var(--color-genre-jazz), var(--color-genre-jazz-end)); }
+.g-ambient { background: linear-gradient(135deg, var(--color-genre-ambient), var(--color-genre-ambient-end)); }
+
+/* Rows & cards */
+.list { display: flex; flex-direction: column; gap: var(--spacing-3); }
+.row { display: flex; align-items: center; gap: var(--spacing-3); padding: var(--spacing-3); min-width: 0; }
+.row .grow { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.meta { display: flex; align-items: center; gap: var(--spacing-1_5); }
+.section-head { display: flex; justify-content: space-between; align-items: center; min-height: var(--size-touch-min); margin-bottom: calc(-1 * var(--spacing-2)); }
+.link { font-size: 13px; font-weight: 700; min-height: var(--size-touch-min); padding-inline: var(--spacing-1); }
+.empty { padding: var(--spacing-5); text-align: center; }
+
+/* Icon buttons */
+.ib { flex-shrink: 0; width: var(--size-touch-min); height: var(--size-touch-min); border-radius: var(--radius-pill); display: grid; place-items: center; }
+.ib.solid { background: var(--color-control); box-shadow: 0 6px 14px var(--shadow-control); }
+.ib.flat { background: var(--glass-fill-control); }
+.ib.filled, .ib[aria-pressed="true"].toggle-fill { background: var(--color-accent); color: var(--color-on-accent); }
+.ib svg { width: 22px; height: 22px; }
+
+/* Schedule */
+.days { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--spacing-1_5); flex-shrink: 0; }
+.day { height: 56px; min-width: var(--size-touch-min); border-radius: var(--radius-tile); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+.day span:first-child { font-size: 11px; font-weight: 700; letter-spacing: .04em; }
+.day span:last-child { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.slot .when { width: 76px; flex-shrink: 0; display: flex; flex-direction: column; gap: 2px; }
+.slot.past { opacity: .55; }
+
+/* Players */
+.panel { padding: var(--spacing-5); display: flex; flex-direction: column; gap: var(--spacing-4); }
+.panel-top { display: flex; align-items: center; justify-content: space-between; }
+.art { position: relative; width: 100%; max-width: 100%; aspect-ratio: 1; border-radius: var(--radius-art); color: var(--color-on-accent); box-shadow: 0 18px 40px var(--shadow-art); padding: var(--spacing-4); display: flex; flex-direction: column; justify-content: space-between; }
+.art.deep { background: linear-gradient(135deg, var(--color-art-deep-start), var(--color-art-deep-mid) 45%, var(--color-art-deep-end)); }
+.art.blush { background: linear-gradient(180deg, var(--color-art-blush-start), var(--color-art-blush-end)); justify-content: center; align-items: center; text-align: center; }
+.art { container-type: inline-size; overflow: hidden; }
+/* Cover type flexes with the cover: max 34px, shrinks so the longest word always fits on one line */
+.art .cover-title { font-family: var(--font-display); font-weight: 800; line-height: .88; letter-spacing: -.02em; text-transform: uppercase; margin: 0; white-space: nowrap; max-width: 100%;
+  font-size: clamp(16px, calc((100cqi - 2 * var(--spacing-4)) / (var(--chars, 8) * 0.95)), 34px); }
+.live-status { display: flex; align-items: center; gap: var(--spacing-3); padding: var(--spacing-3) var(--spacing-4); border-radius: var(--radius-tile); background: var(--glass-fill-chip); }
+.eq { display: flex; align-items: flex-end; gap: 3px; height: 20px; width: 24px; }
+.eq i { display: block; width: 4px; border-radius: 2px; background: var(--color-ink); height: 60%; }
+:root[data-motion="full"] .eq.on i { animation: eq var(--motion-duration-eq) var(--motion-easing-loop) infinite; }
+:root[data-motion="full"] .eq.on i:nth-child(2) { animation-delay: 150ms; }
+:root[data-motion="full"] .eq.on i:nth-child(3) { animation-delay: 300ms; }
+:root[data-motion="full"] .eq.on i:nth-child(4) { animation-delay: 450ms; }
+@keyframes eq { 0%, 100% { height: 30%; } 50% { height: 100%; } }
+.big-play { align-self: center; width: var(--size-play-lg); height: var(--size-play-lg); border-radius: var(--radius-pill); background: var(--color-control); box-shadow: 0 12px 26px var(--shadow-control); display: grid; place-items: center; }
+.big-play.md { width: var(--size-play-md); height: var(--size-play-md); }
+.big-play svg { width: 28px; height: 28px; }
+.controls { display: flex; align-items: center; justify-content: space-between; }
+.seek { display: flex; flex-direction: column; gap: var(--spacing-1_5); }
+.seek input { -webkit-appearance: none; appearance: none; width: 100%; height: 24px; background: transparent; margin: 0; cursor: pointer; }
+.seek input::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--color-accent) var(--p, 0%), var(--color-divider) var(--p, 0%)); }
+.seek input::-moz-range-track { height: 4px; border-radius: 2px; background: var(--color-divider); }
+.seek input::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--color-accent); }
+.seek input::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: -7px; border-radius: 50%; background: var(--color-control); box-shadow: 0 3px 8px var(--shadow-control); }
+.seek input::-moz-range-thumb { width: 18px; height: 18px; border: 0; border-radius: 50%; background: var(--color-control); box-shadow: 0 3px 8px var(--shadow-control); }
+.seek .times { display: flex; justify-content: space-between; }
+
+/* Profile */
+.favs { display: flex; gap: var(--spacing-4); overflow-x: auto; margin-inline: calc(-1 * var(--spacing-6)); padding: 0 var(--spacing-6) var(--spacing-1); scrollbar-width: none; flex-shrink: 0; }
+.favs::-webkit-scrollbar { display: none; }
+.fav { width: 72px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: var(--spacing-2); text-align: center; }
+.fav .wrap { position: relative; padding-bottom: 6px; }
+.fav .badge { position: absolute; left: 50%; bottom: -2px; transform: translateX(-50%); border: 2px solid var(--color-control); }
+.fav .name { font-size: 12px; font-weight: 600; line-height: 1.25; }
+.avatar { width: 56px; height: 56px; border-radius: var(--radius-pill); display: grid; place-items: center; color: var(--color-on-accent); background: linear-gradient(135deg, var(--color-genre-house), var(--color-genre-house-end)); }
+.saved.removed .grow, .saved.removed .tile { opacity: .45; }
+
+/* Tab bar */
+.tabbar { position: absolute; left: var(--spacing-4); right: var(--spacing-4); bottom: var(--spacing-4); z-index: 5; display: flex; padding: var(--spacing-2); }
+.tab { position: relative; z-index: 1; flex: 1; min-height: 56px; border-radius: var(--radius-pill); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 700; }
+.tab svg { width: 22px; height: 22px; }
+.tab[aria-current="page"] { color: var(--color-on-accent); }
+.pill { position: absolute; top: var(--spacing-2); bottom: var(--spacing-2); left: var(--spacing-2); width: calc((100% - 2 * var(--spacing-2)) / 4); border-radius: var(--radius-pill); background: var(--color-accent); transition: transform var(--motion-duration-base) var(--motion-easing-emphasized); }
+
+/* Page-change veil: a blur layer over the screens (under the tab bar). Its opacity is what animates. */
+.veil { position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0;
+  background: color-mix(in srgb, var(--color-wall-mid) 35%, transparent);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+:root[data-motion="reduced"] .veil { backdrop-filter: none; -webkit-backdrop-filter: none;
+  background: linear-gradient(165deg, var(--color-wall-top), var(--color-wall-mid) 55%, var(--color-wall-bottom)); }
+
+/* Hidden SoundCloud player: kept rendered (not display:none) so audio keeps playing */
+.sc-frame { position: fixed; left: 0; bottom: 0; width: 1px; height: 1px; border: 0; opacity: 0; pointer-events: none; }
+.sp-frame { position: fixed; left: 0; bottom: 0; width: 300px; height: 80px; overflow: hidden; opacity: 0; pointer-events: none; z-index: -1; }
+
+/* Toast */
+.toast { position: absolute; left: var(--spacing-6); right: var(--spacing-6); bottom: calc(var(--tabbar-clearance) + var(--spacing-2)); z-index: 6; display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-3); padding: var(--spacing-2) var(--spacing-2) var(--spacing-2) var(--spacing-4); border-radius: var(--radius-tile); background: var(--color-ink); color: var(--color-on-accent); font-size: 13px; font-weight: 600; }
+.toast button { min-height: var(--size-touch-min); padding-inline: var(--spacing-3); font-weight: 800; color: var(--color-on-accent); }
+
+:root[data-motion="reduced"] .pill { transition: none; } /* pill jumps instantly */
+</style>
+
+</head>
+<body>
+<div class="note-bar">
+  <p class="note">Clickable preview built from the Figma Page Mocks. Tap a live card, the tab bar, or a saved set.</p>
+  <button id="motion-toggle" class="motion-toggle glass-chip" aria-pressed="true">Motion: full</button>
+  <p class="note" id="motion-hint"></p>
+</div>
+
+<div class="stage" id="stage"><div class="phone" id="phone">
+  <section class="screen" id="s-live" aria-label="Live"></section>
+  <section class="screen" id="s-schedule" aria-label="Schedule" hidden></section>
+  <section class="screen" id="s-playing" aria-label="Playing" hidden></section>
+  <section class="screen" id="s-profile" aria-label="Profile" hidden></section>
+  <section class="screen overlay" id="s-player" aria-label="Live player" hidden></section>
+  <div class="veil" id="veil" aria-hidden="true"></div>
+  <div class="toast" id="toast" role="status" hidden></div>
+  <nav class="tabbar glass-raised" aria-label="Main">
+    <span class="pill" aria-hidden="true"></span>
+    <button class="tab" data-tab="live"></button>
+    <button class="tab" data-tab="schedule"></button>
+    <button class="tab" data-tab="playing"></button>
+    <button class="tab" data-tab="profile"></button>
+  </nav>
+</div></div>
+
+<script>
+const s = (d, extra = '') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${d}</svg>`;
+const I = {
+  live: s('<circle cx="12" cy="12" r="2.2"/><path d="M8.2 8.2a5.4 5.4 0 0 0 0 7.6M15.8 8.2a5.4 5.4 0 0 1 0 7.6M5.4 5.4a9.3 9.3 0 0 0 0 13.2M18.6 5.4a9.3 9.3 0 0 1 0 13.2"/>'),
+  schedule: s('<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'),
+  playing: s('<path d="M9 18V5.5l11-2V16"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>'),
+  profile: s('<circle cx="12" cy="8" r="4"/><path d="M4 21c1.2-4 4.3-6 8-6s6.8 2 8 6"/>'),
+  play: s('<path d="M8 5.5v13l10.5-6.5z" fill="currentColor" stroke="none"/>'),
+  pause: s('<path d="M8 5v14M16 5v14" stroke-width="3.2"/>'),
+  stop: s('<rect x="6.5" y="6.5" width="11" height="11" rx="2" fill="currentColor" stroke="none"/>'),
+  down: s('<path d="M6 9l6 6 6-6"/>'),
+  right: s('<path d="M9 6l6 6-6 6"/>'),
+  heart: s('<path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.6 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/>'),
+  heartOn: s('<path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.6 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" fill="currentColor"/>'),
+  bell: s('<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15zM10 20.5h4"/>'),
+  bellOn: s('<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z" fill="currentColor"/><path d="M10 20.5h4"/>'),
+  mark: s('<path d="M7 4h10v16l-5-3.5L7 20z"/>'),
+  markOn: s('<path d="M7 4h10v16l-5-3.5L7 20z" fill="currentColor"/>'),
+  shuffle: s('<path d="M4 7h3.5c4 0 5 10 9 10H20M4 17h3.5c1.6 0 2.6-1.6 3.5-3.5M13 10.5c.9-1.9 1.9-3.5 3.5-3.5H20M17.5 4.5L20 7l-2.5 2.5M17.5 14.5L20 17l-2.5 2.5"/>'),
+  prev: s('<path d="M18 6v12L9 12z" fill="currentColor" stroke="none"/><path d="M6.5 6v12" stroke-width="2.4"/>'),
+  next: s('<path d="M6 6v12l9-6z" fill="currentColor" stroke="none"/><path d="M17.5 6v12" stroke-width="2.4"/>'),
+  repeat: s('<path d="M5 11V9.5A2.5 2.5 0 0 1 7.5 7H19M16 4l3 3-3 3M19 13v1.5a2.5 2.5 0 0 1-2.5 2.5H5M8 20l-3-3 3-3"/>'),
+  repeatOn: s('<path d="M5 11V9.5A2.5 2.5 0 0 1 7.5 7H19M16 4l3 3-3 3M19 13v1.5a2.5 2.5 0 0 1-2.5 2.5H5M8 20l-3-3 3-3"/><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/>'),
+  devices: s('<rect x="3" y="4.5" width="12" height="10" rx="1.5"/><path d="M6 18.5h6"/><rect x="15.5" y="9" width="5.5" height="10.5" rx="1.2"/>'),
+  queue: s('<path d="M4 6h12M4 11h12M4 16h7M17 13v7M14 17l3 3 3-3"/>'),
+  more: s('<circle cx="5.5" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="18.5" cy="12" r="1.2" fill="currentColor"/>'),
+  gear: s('<circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/>'),
+};
+const TAB_LABEL = { live: 'Live', schedule: 'Schedule', playing: 'Playing', profile: 'Profile' };
+
+// Example data from the Figma Page Mocks
+const DJ = {
+  zb: { name: 'Zara Bloom', ini: 'ZB', genre: 'house', label: 'House', set: 'Late Bloom', listeners: '1.2k', live: true, onAir: '8:00 – 10:00 PM', elapsed: 134 },
+  dg: { name: 'Deia Green', ini: 'DG', genre: 'lofi', label: 'R&B', set: 'Dark and Stormy', listeners: '8.8k', live: true, onAir: '7:30 – 9:30 PM', elapsed: 2710 },
+  ml: { name: 'DJ MarBear', ini: 'DM', genre: 'techno', label: 'Techno', set: 'Concrete Sun', listeners: '2.4k', live: true, onAir: '7:00 – 9:00 PM', elapsed: 3925 },
+  jr: { name: 'Jamie Rose', ini: 'JR', genre: 'house', label: 'Disco House', set: 'Low Tide Hours', listeners: '12', live: true, onAir: '8:15 – 9:45 PM', elapsed: 420 },
+  ms: { name: 'Mirae Song', ini: 'MS', genre: 'ambient', label: 'Ambient', set: 'Soft Static', live: false },
+  jl: { name: 'Juniper Lake', ini: 'JL', genre: 'jazz', label: 'Jazz', set: 'Rose Hour Sessions', live: false },
+  tv: { name: 'Theo Vance', ini: 'TV', genre: 'techno', label: 'Techno', set: 'Night Shift', live: false },
+  eb: { name: 'Ezra Bloom', ini: 'EB', genre: 'lofi', label: 'Lo-fi', set: 'Pillow Tapes', live: false },
+};
+const LIVE_ORDER = ['zb', 'dg', 'ml', 'jr'];
+const GENRES = [['all', 'All'], ['house', 'House'], ['lofi', 'Lo-fi'], ['techno', 'Techno'], ['jazz', 'Jazz'], ['ambient', 'Ambient']];
+const DAYS = [['Mon', 12, 'Monday'], ['Tue', 13, 'Tuesday'], ['Wed', 14, 'Wednesday'], ['Thu', 15, 'Thursday'], ['Fri', 16, 'Friday'], ['Sat', 17, 'Saturday'], ['Sun', 18, 'Sunday']];
+const TODAY = 16;
+const SLOTS = [
+  { dj: 'jl', time: '6:00 PM', dur: '2 hr', state: 'past' },
+  { dj: 'zb', time: '8:00 PM', dur: '2 hr', state: 'onair' },
+  { dj: 'ms', time: '10:00 PM', dur: '90 min', state: 'next', remind: false },
+  { dj: 'tv', time: '11:30 PM', dur: '90 min', state: 'next', remind: true },
+  { dj: 'eb', time: '1:00 AM', dur: '2 hr', state: 'next', remind: false },
+];
+const FAVS = ['zb', 'ml', 'jl', 'ms', 'jr'];
+const USER_NAME = 'Alex Rivera'; // sample listener
+function setToggle(btn, on, iconOn, iconOff, label) {
+  btn.setAttribute('aria-pressed', on);
+  btn.innerHTML = on ? iconOn : iconOff;
+  if (label) btn.setAttribute('aria-label', label);
+}
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+const SAVED = [
+  { id: 1, title: 'Late Bloom', dj: 'zb', date: 'Oct 9', dur: '2 hr', len: 7200 },
+  { id: 2, title: 'Rose Hour Sessions', dj: 'jl', date: 'Oct 8', dur: '2 hr', len: 7200 },
+  { id: 3, title: 'Concrete Sun', dj: 'ml', date: 'Oct 6', dur: '2 hr', len: 7200 },
+  { id: 4, title: 'Soft Static', dj: 'ms', date: 'Oct 3', dur: '90 min', len: 5400 },
+  { id: 5, title: 'Low Tide Hours', dj: 'jr', date: 'Oct 1', dur: '4 min', len: 220 },
+];
+
+const st = {
+  tab: 'live', genre: 'all', day: TODAY,
+  player: null, liveOn: false, liveFav: {},
+  track: { title: 'Low Tide Hours', dj: 'jr', pos: 42, len: 220 }, playing: false,
+  shuffle: false, repeat: true, trackFav: false,
+  removed: new Set(),
+};
+
+const $ = id => document.getElementById(id);
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const initials = t => t.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+const fmt = sec => { sec = Math.max(0, Math.round(sec)); const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), x = String(sec % 60).padStart(2, '0'); return h ? `${h}:${String(m).padStart(2, '0')}:${x}` : `${m}:${x}`; };
+const tile = (d, cls = '') => `<div class="tile ${cls} g-${d.genre}" aria-hidden="true">${d.ini}</div>`;
+const liveBadge = (dot = false) => `<span class="badge">${dot ? '<span class="dot pulse"></span>' : ''}Live</span>`;
+const coverLines = t => t.split(/\s+/).map(esc).join('<br>');
+const longest = t => Math.max(...t.split(/\s+/).map(w => w.length));
+function fitCovers() { // exact fit once the font has loaded; CSS above is the first guess
+  document.querySelectorAll('.cover-title').forEach(el => {
+    if (!el.offsetParent) return;
+    el.style.fontSize = '';
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    while (size + 0.5 <= 34 && el.scrollWidth <= el.clientWidth) { size += 0.5; el.style.fontSize = size + 'px'; }
+    if (el.scrollWidth > el.clientWidth) { size -= 0.5; el.style.fontSize = size + 'px'; }
+    while (size > 16 && el.scrollWidth > el.clientWidth) { size -= 0.5; el.style.fontSize = size + 'px'; }
+  });
+}
+function fitStage() {
+  const bar = document.querySelector('.note-bar');
+  const availH = innerHeight - (bar ? bar.offsetHeight : 0) - 56;
+  const availW = document.body.clientWidth - 32;
+  $('stage').style.setProperty('--s', Math.max(0.5, Math.min(1, availW / 390, availH / 844)));
+}
+addEventListener('resize', () => { fitStage(); fitCovers(); });
+document.fonts && document.fonts.ready.then(fitCovers);
+
+/* ---------- Live ---------- */
+function liveListHTML() {
+  const list = LIVE_ORDER.filter(k => st.genre === 'all' || DJ[k].genre === st.genre);
+  const genreName = GENRES.find(g => g[0] === st.genre)[1];
+  return list.length ? list.map(k => { const d = DJ[k]; return `
+        <article class="glass-card row">
+          ${tile(d)}
+          <div class="grow">
+            <div class="meta">${liveBadge()}<span class="caption tnum">${d.listeners} listening</span></div>
+            <h3 class="title-md clip">${esc(d.name)}</h3>
+            <p class="body-sm clip">${esc(d.set)} · ${esc(d.label)}</p>
+          </div>
+          <button class="ib solid" data-tune="${k}" aria-label="Tune in to ${esc(d.name)}">${I.play}</button>
+        </article>`; }).join('') : `
+        <div class="glass-card empty"><p class="body-sm">Nobody is spinning ${esc(genreName.toLowerCase())} right now. Check the schedule for the next set.</p></div>`;
+}
+function renderLive() {
+  $('s-live').innerHTML = `
+    <h1 class="display">Lateset</h1>
+    <div class="chips" role="group" aria-label="Filter by genre">
+      ${GENRES.map(([k, l]) => `<button class="chip glass-chip" data-genre="${k}" aria-pressed="${st.genre === k}">${l}</button>`).join('')}
+    </div>
+    <h2 class="eyebrow section-head">On air now</h2>
+    <div class="list" id="live-list">
+      ${liveListHTML()}
+    </div>
+    <div class="section-head"><h2 class="eyebrow">Up next tonight</h2><button class="link" data-go="schedule">Full schedule</button></div>
+    <button class="glass-card row" data-go="schedule" aria-label="Mirae Song, Soft Static, ambient, 10:00 PM. Open the schedule" style="text-align:left">
+      ${tile(DJ.ms, 'sm')}
+      <div class="grow"><span class="time">10:00 PM</span><span class="title-md clip">Mirae Song · Ambient</span></div>
+      <span class="ib" aria-hidden="true">${I.right}</span>
+    </button>`;
+}
+
+/* ---------- Schedule ---------- */
+function slotsHTML() {
+  const isToday = st.day === TODAY;
+  return isToday ? SLOTS.map((sl, i) => { const d = DJ[sl.dj]; const onair = sl.state === 'onair'; return `
+        <article class="${onair ? 'glass-elevated' : 'glass-card'} row slot ${sl.state === 'past' ? 'past' : ''}">
+          <div class="when"><span class="time">${sl.time}</span><span class="caption">${sl.dur}</span></div>
+          ${tile(d, 'sm')}
+          <div class="grow">
+            ${onair ? '<div class="meta"><span class="badge on-air">On air</span></div>' : ''}
+            <h3 class="title-md clip">${esc(d.name)}</h3>
+            <p class="body-sm clip">${esc(d.set)} · ${esc(d.label)}</p>
+          </div>
+          ${onair ? `<button class="ib filled" data-tune="${sl.dj}" aria-label="Tune in to ${esc(d.name)}">${I.play}</button>`
+            : sl.state === 'next' ? `<button class="ib flat toggle-fill" data-remind="${i}" aria-pressed="${sl.remind}" aria-label="Remind me when ${esc(d.name)} goes on air">${sl.remind ? I.bellOn : I.bell}</button>` : ''}
+        </article>`; }).join('') : `
+        <div class="glass-card empty"><p class="body-sm">No sets are listed for this day in the preview. Pick Friday to see tonight's lineup.</p></div>`;
+}
+function renderSchedule() {
+  $('s-schedule').innerHTML = `
+    <div><h1 class="display">Schedule</h1><p class="body-sm" style="margin-top:6px">Times shown in your time zone</p></div>
+    <div class="days" role="group" aria-label="Pick a day">
+      ${DAYS.map(([s3, n, full]) => `<button class="day glass-chip" data-day="${n}" aria-pressed="${st.day === n}" aria-label="${full}, October ${n}${n === TODAY ? ', today' : ''}"><span>${s3.toUpperCase()}</span><span>${n}</span></button>`).join('')}
+    </div>
+    <div class="list" id="slot-list">
+      ${slotsHTML()}
+    </div>`;
+}
+
+/* ---------- Live player ---------- */
+const reduced = () => document.documentElement.dataset.motion === 'reduced';
+const mq = matchMedia('(prefers-reduced-motion: reduce)');
+function setMotion(m) {
+  document.documentElement.dataset.motion = m;
+  const b = $('motion-toggle');
+  b.setAttribute('aria-pressed', m === 'full');
+  b.textContent = m === 'full' ? 'Motion: full' : 'Motion: reduced';
+  $('motion-hint').textContent = [
+    mq.matches ? 'Your computer has Reduce motion on, so the prototype starts reduced.' : '',
+    window.LATESET_TRACKS ? '' : 'Music plays in the downloaded version; here playback is simulated.',
+  ].filter(Boolean).join(' ');
+}
+function riseFrom(el, fromEl) {
+  if (!el.animate) return;
+  if (reduced() || !fromEl) { el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250, easing: 'ease-in-out' }); return; }
+  const ph = $('phone').getBoundingClientRect(), r = fromEl.getBoundingClientRect();
+  const k = ph.width / 390;
+  const t = (r.top - ph.top) / k, l = (r.left - ph.left) / k;
+  const rt = 390 - l - r.width / k, bt = 844 - t - r.height / k;
+  el.animate([
+    { clipPath: `inset(${t}px ${rt}px ${bt}px ${l}px round 24px)`, opacity: .35, transform: 'translateY(8px)' },
+    { clipPath: 'inset(0px 0px 0px 0px round 0px)', opacity: 1, transform: 'none' },
+  ], { duration: parseFloat(cssVar('--motion-duration-slow')) || 400, easing: cssVar('--motion-easing-standard') });
+}
+function exitDown(el, done) {
+  if (reduced() || !el.animate) { done(); return; }
+  el.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateY(48px)', opacity: 0 }],
+    { duration: parseFloat(cssVar('--motion-duration-base')) || 250, easing: cssVar('--motion-easing-exit') || 'ease-in', fill: 'forwards' }).onfinish = done;
+}
+function renderPlayer(rise, fromEl) {
+  const d = DJ[st.player];
+  const el = $('s-player');
+  el.innerHTML = `
+    <div class="glass-subtle panel">
+      <div class="panel-top">
+        <button class="ib" data-close aria-label="Close the live player">${I.down}</button>
+        <span class="badge" style="font-size:11px;padding:3px 10px">${st.liveOn ? '<span class="dot pulse"></span>' : '<span class="dot"></span>'}Live</span>
+        <button class="ib" data-livefav aria-pressed="${!!st.liveFav[st.player]}" aria-label="Favorite ${esc(d.name)}">${st.liveFav[st.player] ? I.heartOn : I.heart}</button>
+      </div>
+      <div class="art deep">
+        <span class="eyebrow" style="font-size:12px">${esc(d.label)} · Live set</span>
+        <p class="cover-title" style="--chars:${longest(d.set)}">${coverLines(d.set)}</p>
+        <span class="title-sm">with ${esc(d.name)}</span>
+      </div>
+      <div><h1 class="title-lg">${esc(d.set)}</h1><p class="body-md">${esc(d.name)} · <span class="tnum">${d.listeners}</span> listening</p></div>
+      <div class="live-status">
+        <div class="eq ${st.liveOn ? 'on' : ''}" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div class="grow" style="flex:1;min-width:0" aria-live="polite">
+          <p class="title-sm">${st.liveOn ? 'Listening live' : 'Stopped'}</p>
+          <p class="caption">On air ${d.onAir}</p>
+        </div>
+        <span class="caption tnum" id="live-elapsed" aria-label="Time since you tuned in">${fmt(d.elapsed)}</span>
+      </div>
+      <button class="big-play" data-livetoggle aria-label="${st.liveOn ? 'Stop listening to ' : 'Start listening to '}${esc(d.name)}">${st.liveOn ? I.stop : I.play}</button>
+    </div>
+    <button class="glass-card row" data-go="schedule" style="text-align:left" aria-label="Up next at 10:00 PM: Mirae Song, ambient. Open the schedule">
+      ${tile(DJ.ms, 'sm')}
+      <div class="grow"><span class="eyebrow" style="font-size:12px">Up next · <span class="tnum">10:00 PM</span></span><span class="title-md clip">Mirae Song · Ambient</span></div>
+      <span class="ib" aria-hidden="true">${I.right}</span>
+    </button>`;
+  el.hidden = false;
+  fitCovers();
+  if (rise) { el.scrollTop = 0; riseFrom(el, fromEl); }
+}
+
+/* ---------- Playing ---------- */
+function renderPlaying() {
+  const t = st.track, d = DJ[t.dj];
+  $('s-playing').innerHTML = `
+    <div class="glass-subtle panel">
+      <div class="panel-top">
+        <button class="ib" data-go="profile" aria-label="Minimize the player">${I.down}</button>
+        <span class="eyebrow" style="font-size:12px">Now playing</span>
+        <button class="ib" aria-label="More options for ${esc(t.title)}">${I.more}</button>
+      </div>
+      <div class="art blush"><p class="cover-title" style="--chars:${longest(t.title)}">${coverLines(t.title)}</p></div>
+      <div class="row" style="padding:0">
+        <div class="grow"><h1 class="title-lg clip">${esc(t.title)}</h1><p class="body-md clip">${esc(d.name)}</p></div>
+        <button class="ib" data-trackfav aria-pressed="${st.trackFav}" aria-label="Favorite ${esc(t.title)}">${st.trackFav ? I.heartOn : I.heart}</button>
+      </div>
+      <div class="seek">
+        <input type="range" id="seek" min="0" max="${t.len}" value="${t.pos}" step="1" aria-label="Seek in ${esc(t.title)}" aria-valuetext="${fmt(t.pos)} of ${fmt(t.len)}">
+        <div class="times caption tnum"><span id="pos">${fmt(t.pos)}</span><span id="rem">-${fmt(t.len - t.pos)}</span></div>
+      </div>
+      <div class="controls">
+        <button class="ib ${st.shuffle ? 'flat' : ''}" data-shuffle aria-pressed="${st.shuffle}" aria-label="Shuffle">${st.shuffle ? I.shuffle.replace('stroke-width="1.8"', 'stroke-width="2.6"') : I.shuffle}</button>
+        <button class="ib" data-prev aria-label="Previous set">${I.prev}</button>
+        <button class="big-play md" data-playtoggle aria-label="${st.playing ? 'Pause ' : 'Play '}${esc(t.title)}">${st.playing ? I.pause : I.play}</button>
+        <button class="ib" data-next aria-label="Next set">${I.next}</button>
+        <button class="ib ${st.repeat ? 'flat' : ''}" data-repeat aria-pressed="${st.repeat}" aria-label="Repeat">${st.repeat ? I.repeatOn : I.repeat}</button>
+      </div>
+      <div class="panel-top">
+        <button class="ib" aria-label="Play on another device">${I.devices}</button>
+        <button class="ib" aria-label="Show the queue">${I.queue}</button>
+      </div>
+    </div>`;
+  paintSeek();
+  fitCovers();
+}
+function paintLiveState() {
+  const el = $('s-player'); if (el.hidden || !st.player) return;
+  const d = DJ[st.player];
+  el.querySelector('.eq').classList.toggle('on', st.liveOn);
+  el.querySelector('.panel-top .badge .dot').classList.toggle('pulse', st.liveOn);
+  el.querySelector('.live-status .title-sm').textContent = st.liveOn ? 'Listening live' : 'Stopped';
+  const b = el.querySelector('[data-livetoggle]');
+  b.innerHTML = st.liveOn ? I.stop : I.play;
+  b.setAttribute('aria-label', (st.liveOn ? 'Stop listening to ' : 'Start listening to ') + d.name);
+}
+function paintPlayButton() {
+  const b = document.querySelector('#s-playing [data-playtoggle]'); if (!b) return;
+  b.innerHTML = st.playing ? I.pause : I.play;
+  b.setAttribute('aria-label', (st.playing ? 'Pause ' : 'Play ') + st.track.title);
+}
+function paintSeek() {
+  const r = $('seek'); if (!r) return;
+  const t = st.track;
+  r.value = t.pos;
+  r.style.setProperty('--p', (t.pos / t.len * 100) + '%');
+  r.setAttribute('aria-valuetext', `${fmt(t.pos)} of ${fmt(t.len)}`);
+  $('pos').textContent = fmt(t.pos);
+  $('rem').textContent = '-' + fmt(t.len - t.pos);
+}
+
+/* ---------- Profile ---------- */
+function renderProfile() {
+  $('s-profile').innerHTML = `
+    <div class="panel-top"><h1 class="display">Profile</h1><button class="ib glass-chip" aria-label="Settings">${I.gear}</button></div>
+    <div class="glass-card row" style="padding:var(--spacing-4)">
+      <div class="avatar" aria-hidden="true">${I.profile}</div>
+      <div class="grow"><h2 class="title-md" style="font-size:18px">${esc(USER_NAME)}</h2><p class="caption tnum">${plural(FAVS.length, 'favorite DJ', 'favorite DJs')} · ${plural(SAVED.length - st.removed.size, 'saved set', 'saved sets')}</p></div>
+    </div>
+    <h2 class="eyebrow section-head">Favorite DJs</h2>
+    <div class="favs">
+      ${FAVS.map(k => { const d = DJ[k]; const inner = `<span class="wrap">${tile(d, 'round')}${d.live ? liveBadge() : ''}</span><span class="name">${esc(d.name)}</span>`;
+        return d.live ? `<button class="fav" data-tune="${k}" aria-label="${esc(d.name)} is live. Tune in">${inner}</button>` : `<div class="fav">${inner}</div>`; }).join('')}
+    </div>
+    <h2 class="eyebrow section-head">Saved sets</h2>
+    <div class="list">
+      ${SAVED.map(x => { const d = DJ[x.dj]; const off = st.removed.has(x.id); return `
+        <article class="glass-card row saved ${off ? 'removed' : ''}">
+          <div class="tile sm g-${d.genre}" aria-hidden="true">${initials(x.title)}</div>
+          <div class="grow"><h3 class="title-md clip">${esc(x.title)}</h3><p class="body-sm clip">${esc(d.name)} · ${x.date} · ${x.dur}</p></div>
+          <button class="ib" data-unsave="${x.id}" aria-pressed="${!off}" aria-label="${off ? 'Save ' : 'Remove '}${esc(x.title)} ${off ? 'to' : 'from'} saved sets">${off ? I.mark : I.markOn}</button>
+          <button class="ib solid" data-playset="${x.id}" aria-label="Play ${esc(x.title)} by ${esc(d.name)}">${I.play}</button>
+        </article>`; }).join('')}
+    </div>`;
+}
+
+/* ---------- Tabs, toast, timers ---------- */
+function renderTabs() {
+  const current = st.player ? 'live' : st.tab;
+  document.querySelectorAll('.tab').forEach(b => {
+    const k = b.dataset.tab;
+    if (!b.firstChild) b.innerHTML = I[k] + `<span>${TAB_LABEL[k]}</span>`;
+    if (k === current) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
+  const idx = ['live', 'schedule', 'playing', 'profile'].indexOf(current);
+  document.querySelector('.pill').style.transform = `translateX(${idx * 100}%)`;
+}
+let booted = false;
+let veilAnim = null, pendingSwap = null;
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function showScreen(tab) {
+  ['live', 'schedule', 'playing', 'profile'].forEach(k => $('s-' + k).hidden = k !== tab);
+  $('s-player').hidden = !st.player;
+}
+function withVeil(swap) { // blur out (fast, exit) → swap at peak → sharpen in (base, standard)
+  const v = $('veil');
+  if (!booted || !v.animate) { swap(); return; }
+  if (veilAnim) { veilAnim.cancel(); veilAnim = null; }
+  if (pendingSwap) { pendingSwap(); pendingSwap = null; }
+  pendingSwap = swap;
+  const outA = v.animate([{ opacity: getComputedStyle(v).opacity }, { opacity: 1 }],
+    { duration: parseFloat(cssVar('--motion-duration-fast')) || 150, easing: cssVar('--motion-easing-exit'), fill: 'forwards' });
+  veilAnim = outA;
+  outA.onfinish = () => {
+    if (pendingSwap) { pendingSwap(); pendingSwap = null; }
+    const inA = v.animate([{ opacity: 1 }, { opacity: 0 }],
+      { duration: parseFloat(cssVar('--motion-duration-base')) || 250, easing: cssVar('--motion-easing-standard'), fill: 'forwards' });
+    veilAnim = inA;
+    inA.onfinish = () => { veilAnim = null; };
+    outA.cancel();
+  };
+}
+function go(tab) {
+  if (st.tab === 'profile' && tab !== 'profile' && st.removed.size) { // unsave is final once you leave
+    for (const id of st.removed) { const i = SAVED.findIndex(x => x.id === id); if (i > -1) SAVED.splice(i, 1); }
+    st.removed.clear(); hideToast();
+  }
+  const changed = st.tab !== tab || !!st.player;
+  st.player = null; st.tab = tab;
+  renderTabs(); // pill starts sliding right away
+  const swap = () => {
+    ({ live: renderLive, schedule: renderSchedule, playing: renderPlaying, profile: renderProfile })[tab]();
+    showScreen(tab);
+    $('s-' + tab).scrollTop = 0;
+    fitCovers();
+  };
+  if (changed) withVeil(swap); else swap();
+}
+let toastTimer;
+function showToast(html) { const t = $('toast'); t.innerHTML = html; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, 5000); }
+function hideToast() { $('toast').hidden = true; }
+
+/* ---------- Real audio (SoundCloud Widget API) ----------
+   Active only when the SoundCloud API script and lateset-tracks.js are loaded (the downloaded file).
+   Otherwise everything falls back to the simulated timer. */
+const audio = (() => {
+  const handlers = { progress: () => {}, state: () => {}, error: () => {} };
+  const tracks = () => window.LATESET_TRACKS || {};
+  const kind = u => /open\.spotify\.com|^spotify:/.test(u || '') ? 'spotify' : (u ? 'soundcloud' : null);
+
+  /* SoundCloud engine (Widget API) */
+  const sc = (() => {
+    let frame = null, widget = null, url = null, durMs = 0;
+    const ok = () => !!(window.SC && window.SC.Widget);
+    function bindAll() {
+      const E = SC.Widget.Events;
+      widget.bind(E.PLAY_PROGRESS, e => active === sc && handlers.progress(e.currentPosition / 1000, durMs / 1000));
+      widget.bind(E.PLAY, () => active === sc && handlers.state(true));
+      widget.bind(E.PAUSE, () => active === sc && handlers.state(false));
+      widget.bind(E.FINISH, () => active === sc && handlers.state(false, true));
+      widget.bind(E.ERROR, () => active === sc && handlers.error());
+    }
+    return {
+      ok,
+      load(trackUrl, startSec, cb) {
+        const after = () => widget.getDuration(d => { durMs = d; if (startSec) widget.seekTo(startSec * 1000); cb && cb(durMs / 1000); });
+        if (!frame) {
+          frame = document.createElement('iframe');
+          frame.className = 'sc-frame'; frame.title = 'Music player'; frame.allow = 'autoplay';
+          frame.tabIndex = -1; frame.setAttribute('aria-hidden', 'true');
+          frame.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(trackUrl) + '&auto_play=true&visual=false&show_artwork=false';
+          document.body.appendChild(frame);
+          widget = SC.Widget(frame); url = trackUrl;
+          widget.bind(SC.Widget.Events.READY, () => { bindAll(); widget.play(); after(); });
+          return;
+        }
+        if (trackUrl !== url) { url = trackUrl; widget.load(trackUrl, { auto_play: true, callback: after }); }
+        else { widget.play(); after(); }
+      },
+      resume() { widget && widget.play(); },
+      pause() { widget && widget.pause(); },
+      seek(sec) { widget && widget.seekTo(Math.max(0, sec) * 1000); },
+    };
+  })();
+
+  /* Spotify engine (iFrame API — no key; full songs when logged in to Spotify in this browser, 30-second previews otherwise) */
+  const sp = (() => {
+    let apiP = null, ctrl = null, uri = null, paused = true, pendingSeek = null, pendingCb = null;
+    const toUri = u => { if (/^spotify:/.test(u)) return u; const m = u.match(/open\.spotify\.com\/(?:intl-[a-z]+\/)?(track|episode|album|playlist)\/([A-Za-z0-9]+)/); return m ? `spotify:${m[1]}:${m[2]}` : null; };
+    function api() {
+      if (!apiP) apiP = new Promise((res, rej) => {
+        window.onSpotifyIframeApiReady = res;
+        const s = document.createElement('script');
+        s.src = 'https://open.spotify.com/embed/iframe-api/v1'; s.async = true;
+        s.onerror = () => rej(new Error('Spotify API blocked'));
+        document.head.appendChild(s);
+      });
+      return apiP;
+    }
+    function onUpdate(e) {
+      if (active !== sp) return;
+      const d = e.data || {};
+      if (d.duration > 0 && (pendingSeek !== null || pendingCb)) {
+        if (pendingSeek) ctrl.seek(pendingSeek);
+        pendingSeek = null;
+        if (pendingCb) { const cb = pendingCb; pendingCb = null; cb(d.duration / 1000); }
+      }
+      handlers.progress((d.position || 0) / 1000, (d.duration || 0) / 1000);
+      if (d.isPaused !== paused) {
+        paused = d.isPaused;
+        const finished = paused && d.duration > 0 && d.position >= d.duration - 500;
+        handlers.state(!paused, finished);
+      }
+    }
+    return {
+      ok: () => true,
+      load(url, startSec, cb) {
+        const u = toUri(url);
+        if (!u) { handlers.error(); return; }
+        pendingSeek = startSec || null; pendingCb = cb || null;
+        api().then(IFrameAPI => {
+          if (!ctrl) {
+            const wrap = document.createElement('div'); wrap.className = 'sp-frame'; wrap.setAttribute('aria-hidden', 'true');
+            const holder = document.createElement('div'); wrap.appendChild(holder); document.body.appendChild(wrap);
+            IFrameAPI.createController(holder, { uri: u, width: 300, height: 80 }, c => {
+              ctrl = c; uri = u;
+              c.addListener('playback_update', onUpdate);
+              c.addListener('ready', () => c.play());
+            });
+          } else if (u !== uri) { uri = u; ctrl.loadUri(u); ctrl.play(); }
+          else { ctrl.resume(); }
+        }).catch(() => handlers.error());
+      },
+      resume() { ctrl && ctrl.resume(); },
+      pause() { ctrl && ctrl.pause(); },
+      seek(sec) { ctrl && ctrl.seek(Math.max(0, sec)); },
+    };
+  })();
+
+  let active = null;
+  const engineFor = u => kind(u) === 'spotify' ? sp : kind(u) === 'soundcloud' && sc.ok() ? sc : null;
+  return {
+    available: dj => !!engineFor(tracks()[dj]),
+    on: (name, fn) => { handlers[name] = fn; },
+    play(dj, startSec, cb) {
+      const u = tracks()[dj], e = engineFor(u);
+      if (!e) return;
+      if (active && active !== e) active.pause();
+      active = e; e.load(u, startSec, cb);
+    },
+    resume() { active && active.resume(); },
+    pause() { active && active.pause(); },
+    seek(sec) { active && active.seek(sec); },
+  };
+})();
+st.src = null;       // 'live' | 'demand' | null — what the real audio is playing
+let dragging = false;
+audio.on('progress', (sec, dur) => {
+  if (st.src !== 'demand' || dragging) return;
+  st.track.pos = sec; if (dur) st.track.len = dur;
+  if (st.tab === 'playing') paintSeek();
+});
+audio.on('state', (playing, finished) => {
+  if (st.src === 'demand') {
+    if (finished && st.repeat) { audio.seek(0); audio.resume(); return; }
+    st.playing = playing; paintPlayButton();
+  } else if (st.src === 'live') {
+    st.liveOn = playing; paintLiveState();
+  }
+});
+audio.on('error', () => {
+  showToast('<span>This track couldn\'t play. Check its link in lateset-tracks.js.</span>');
+  st.src = null; st.playing = false; paintPlayButton();
+});
+function playDemand(startSec) {
+  const t = st.track;
+  if (!audio.available(t.dj)) { st.src = null; return false; }
+  if (st.src === 'live') { st.liveOn = false; }
+  st.src = 'demand';
+  audio.play(t.dj, startSec, dur => { if (dur) { st.track.len = dur; if (st.tab === 'playing') paintSeek(); } });
+  return true;
+}
+function playLive(dj) {
+  if (!audio.available(dj)) { if (st.src) { audio.pause(); st.src = null; } return; }
+  st.src = 'live'; st.playing = false; paintPlayButton();
+  audio.play(dj, 0, dur => { if (dur) audio.seek(DJ[dj].elapsed % dur); }); // join the set "in progress"
+}
+
+setInterval(() => {
+  if (st.player && st.liveOn) { DJ[st.player].elapsed++; const e = $('live-elapsed'); if (e) e.textContent = fmt(DJ[st.player].elapsed); }
+  if (st.playing && st.src !== 'demand') {
+    const t = st.track;
+    if (t.pos < t.len) t.pos++;
+    else if (st.repeat) t.pos = 0;
+    else { st.playing = false; paintPlayButton(); }
+    if (st.tab === 'playing') paintSeek();
+  }
+}, 1000);
+
+/* ---------- Events ---------- */
+document.getElementById('phone').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const ds = b.dataset;
+  if (ds.tab) return go(ds.tab);
+  if (ds.go) return go(ds.go);
+  if (ds.genre) { st.genre = ds.genre; document.querySelectorAll('[data-genre]').forEach(c => c.setAttribute('aria-pressed', c.dataset.genre === st.genre)); $('live-list').innerHTML = liveListHTML(); return; }
+  if (ds.day) { st.day = +ds.day; document.querySelectorAll('[data-day]').forEach(c => c.setAttribute('aria-pressed', +c.dataset.day === st.day)); $('slot-list').innerHTML = slotsHTML(); return; }
+  if (ds.remind !== undefined) { const sl = SLOTS[+ds.remind]; sl.remind = !sl.remind; b.setAttribute('aria-pressed', sl.remind); b.innerHTML = sl.remind ? I.bellOn : I.bell;
+    showToast(`<span>${sl.remind ? 'Reminder set for' : 'Reminder off for'} ${esc(DJ[sl.dj].name)} at ${sl.time}.</span>`); return; }
+  if (ds.tune) { st.playing = false; paintPlayButton(); st.player = ds.tune; st.liveOn = true; renderPlayer(true, b.closest('article, .fav') || b); renderTabs(); playLive(ds.tune); return; }
+  if (b.hasAttribute('data-close')) { const back = st.tab; if (st.src === 'live') { audio.pause(); st.src = null; } exitDown($('s-player'), () => { st.liveOn = false; go(back); }); return; }
+  if (b.hasAttribute('data-livetoggle')) {
+    st.liveOn = !st.liveOn; paintLiveState();
+    if (audio.available(st.player)) { if (st.liveOn) playLive(st.player); else { audio.pause(); } } // Stop, never pause-and-resume: Start rejoins at the live point
+    return;
+  }
+  if (b.hasAttribute('data-livefav')) { const on = st.liveFav[st.player] = !st.liveFav[st.player]; setToggle(b, on, I.heartOn, I.heart); return; }
+  if (b.hasAttribute('data-playtoggle')) {
+    st.playing = !st.playing; paintPlayButton();
+    if (st.playing) { if (st.src === 'demand') audio.resume(); else playDemand(st.track.pos); }
+    else if (st.src === 'demand') audio.pause();
+    return;
+  }
+  if (b.hasAttribute('data-shuffle')) { st.shuffle = !st.shuffle; b.classList.toggle('flat', st.shuffle); setToggle(b, st.shuffle, I.shuffle.replace('stroke-width="1.8"', 'stroke-width="2.6"'), I.shuffle); return; }
+  if (b.hasAttribute('data-repeat')) { st.repeat = !st.repeat; b.classList.toggle('flat', st.repeat); setToggle(b, st.repeat, I.repeatOn, I.repeat); return; }
+  if (b.hasAttribute('data-trackfav')) { st.trackFav = !st.trackFav; setToggle(b, st.trackFav, I.heartOn, I.heart); return; }
+  if (b.hasAttribute('data-prev')) { st.track.pos = 0; paintSeek(); if (st.src === 'demand') audio.seek(0); return; }
+  if (b.hasAttribute('data-next')) { const i = SAVED.findIndex(x => x.title === st.track.title); const n = SAVED[(i + 1) % SAVED.length]; st.track = { title: n.title, dj: n.dj, pos: 0, len: n.len }; renderPlaying(); if (st.playing) playDemand(0); return; }
+  if (ds.playset) { const x = SAVED.find(y => y.id === +ds.playset); st.track = { title: x.title, dj: x.dj, pos: 0, len: x.len }; st.playing = true; st.liveOn = false; playDemand(0); go('playing'); return; }
+  if (ds.unsave) { const id = +ds.unsave; const x = SAVED.find(y => y.id === id);
+    if (st.removed.has(id)) { st.removed.delete(id); hideToast(); }
+    else { st.removed.add(id); showToast(`<span>Removed ${esc(x.title)} from saved sets.</span><button data-undo="${id}">Undo</button>`); }
+    const sc = $('s-profile').scrollTop; renderProfile(); $('s-profile').scrollTop = sc; return; }
+  if (ds.undo) { st.removed.delete(+ds.undo); hideToast(); const sc = $('s-profile').scrollTop; renderProfile(); $('s-profile').scrollTop = sc; return; }
+});
+document.getElementById('phone').addEventListener('input', e => {
+  if (e.target.id === 'seek') { dragging = true; st.track.pos = +e.target.value; paintSeek(); }
+});
+document.getElementById('phone').addEventListener('change', e => {
+  if (e.target.id === 'seek') { dragging = false; if (st.src === 'demand') audio.seek(st.track.pos); }
+});
+
+$('motion-toggle').addEventListener('click', () => setMotion(reduced() ? 'full' : 'reduced'));
+mq.addEventListener && mq.addEventListener('change', () => setMotion(mq.matches ? 'reduced' : 'full'));
+setMotion(mq.matches ? 'reduced' : 'full');
+fitStage();
+go('live');
+booted = true;
+</script>
+
+</body>
+</html>
