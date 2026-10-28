@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="https://w.soundcloud.com/player/api.js"></script>
-<script src="lateset-tracks.js?v=2026-10-27"></script>
+<script src="lateset-tracks.js?v=2026-10-27b"></script>
 <title>Lateset Prototype</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -323,6 +323,9 @@ button:active { transform: scale(.96); transition-duration: var(--motion-duratio
 .history .kind { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--color-ink-muted); }
 .mini .tile .eq i { background: var(--color-on-accent); } /* white equalizer on the genre tile */
 
+/* While a sheet morphs into or out of the mini player, skip backdrop blur so every frame stays cheap */
+.morphing, .morphing * { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+
 /* Toast */
 .toast { position: absolute; left: var(--spacing-6); right: var(--spacing-6); bottom: calc(var(--tabbar-clearance) + var(--spacing-2)); z-index: 6; display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-3); padding: var(--spacing-2) var(--spacing-2) var(--spacing-2) var(--spacing-4); border-radius: var(--radius-tile); background: var(--color-ink); color: var(--color-on-accent); font-size: 13px; font-weight: 600; }
 .toast button { min-height: var(--size-touch-min); padding-inline: var(--spacing-3); font-weight: 800; color: var(--color-on-accent); }
@@ -392,9 +395,10 @@ const DJ = {
   ms: { name: 'Mirae Song', ini: 'MS', genre: 'ambient', label: 'Ambient', set: 'Soft Static', live: false },
   jl: { name: 'Juniper Lake', ini: 'JL', genre: 'jazz', label: 'Jazz', set: 'Rose Hour Sessions', live: false },
   tv: { name: 'Theo Vance', ini: 'TV', genre: 'techno', label: 'Techno', set: 'Night Shift', live: false },
+  cr: { name: 'Cerulean', ini: 'C', genre: 'house', label: 'Pop', set: "That's All", listeners: '1.6k', live: true, onAir: '9:00 – 11:00 PM', elapsed: 1530 },
   eb: { name: 'Ezra Bloom', ini: 'EB', genre: 'lofi', label: 'Lo-fi', set: 'Pillow Tapes', live: false },
 };
-const LIVE_ORDER = ['zb', 'dg', 'ml', 'jr'];
+const LIVE_ORDER = ['zb', 'dg', 'ml', 'jr', 'cr'];
 const GENRES = [['all', 'All'], ['house', 'House'], ['lofi', 'Lo-fi'], ['techno', 'Techno'], ['jazz', 'Jazz'], ['ambient', 'Ambient']];
 const DAYS = [['Mon', 12, 'Monday'], ['Tue', 13, 'Tuesday'], ['Wed', 14, 'Wednesday'], ['Thu', 15, 'Thursday'], ['Fri', 16, 'Friday'], ['Sat', 17, 'Saturday'], ['Sun', 18, 'Sunday']];
 const TODAY = 16;
@@ -476,28 +480,21 @@ function liveListHTML() {
         </article>`; }).join('') : `
         <div class="glass-card empty"><p class="body-sm">Nobody is spinning ${esc(genreName.toLowerCase())} right now. Check the schedule for the next set.</p></div>`;
 }
-// Genre filter: cards that stay glide to their new spot, cards that leave fade where they were,
-// new cards fade in. Everything starts on the same frame, so there's no waiting step.
+// Genre filter: a straight cross-fade. The old cards fade out in place while the new set fades in,
+// on the same frame, so there's no waiting step and nothing slides.
 function swapLiveList() {
   const list = $('live-list'), ms = n => parseFloat(cssVar(n)) || 0;
   if (reduced() || !list.animate) { list.innerHTML = liveListHTML(); return; }
   list.querySelectorAll('.ghost').forEach(g => g.remove());
-  const keyOf = el => el.querySelector('[data-tune]')?.dataset.tune || 'empty';
-  const before = new Map([...list.children].map(el => [keyOf(el), { top: el.offsetTop, left: el.offsetLeft, w: el.offsetWidth, el }]));
+  const old = [...list.children].map(el => ({ el, top: el.offsetTop, left: el.offsetLeft, w: el.offsetWidth }));
   list.innerHTML = liveListHTML();
-  const base = ms('--motion-duration-base') || 250, ease = cssVar('--motion-easing-standard');
-  const kept = new Set();
-  [...list.children].forEach(el => {
-    const was = before.get(keyOf(el));
-    if (was) { kept.add(keyOf(el)); const dy = was.top - el.offsetTop; if (dy) el.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: base, easing: ease }); }
-    else el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: base, easing: ease });
-  });
-  before.forEach((was, k) => { // leaving cards: a non-interactive copy fades out in place
-    if (kept.has(k)) return;
-    const g = was.el.cloneNode(true); g.classList.add('ghost'); g.setAttribute('aria-hidden', 'true'); g.inert = true;
-    Object.assign(g.style, { position: 'absolute', top: was.top + 'px', left: was.left + 'px', width: was.w + 'px', margin: 0, pointerEvents: 'none' });
+  const dur = ms('--motion-duration-base') || 250, ease = cssVar('--motion-easing-standard');
+  [...list.children].forEach(el => el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: dur, easing: ease }));
+  old.forEach(o => { // a non-interactive copy of each old card fades out where it was
+    const g = o.el.cloneNode(true); g.classList.add('ghost'); g.setAttribute('aria-hidden', 'true'); g.inert = true;
+    Object.assign(g.style, { position: 'absolute', top: o.top + 'px', left: o.left + 'px', width: o.w + 'px', margin: 0, pointerEvents: 'none' });
     list.appendChild(g);
-    g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ms('--motion-duration-fast') || 150, easing: cssVar('--motion-easing-exit'), fill: 'forwards' }).finished.then(() => g.remove(), () => g.remove());
+    g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: dur, easing: ease, fill: 'forwards' }).finished.then(() => g.remove(), () => g.remove());
   });
 }
 function renderLive() {
@@ -559,7 +556,7 @@ function riseFrom(el) {
     { duration: parseFloat(cssVar('--motion-duration-slow')) || 400, easing: cssVar('--motion-easing-standard') });
 }
 function exitDown(el, done) {
-  if (reduced() || !el.animate) { done(); return; }
+  if (reduced() || !el.animate) { el.hidden = true; done(); return; }
   const a = el.animate([{ transform: 'none' }, { transform: 'translateY(100%)' }],
     { duration: parseFloat(cssVar('--motion-duration-base')) || 250, easing: cssVar('--motion-easing-exit') || 'ease-in', fill: 'forwards' });
   a.onfinish = () => { el.hidden = true; a.cancel(); done(); }; // hide first, then drop the held end state so the next open isn't invisible
@@ -799,12 +796,12 @@ function renderReplay() {
         </article>`; }).join('')}
       </div>`).join('')}`;
 }
-function openDemand() {
-  const el = $('s-demand');
+function openDemand(fromMini) {
+  const el = $('s-demand'), box = fromMini ? miniBox() : null;
   renderPlaying();
   el.getAnimations().forEach(a => a.cancel());
   el.hidden = false; el.scrollTop = 0;
-  fitCovers(); riseFrom(el); paintMini();
+  fitCovers(); if (box) expandFromMini(el, box); else riseFrom(el); paintMini();
 }
 function startReplay(title, dj) {
   const saved = SAVED.find(x => x.title === title);
@@ -822,8 +819,9 @@ function miniMode() {
   if (st.demandOn) return 'demand';
   return null;
 }
-function paintMini() {
-  const m = $('mini'), mode = miniMode();
+function paintMini(opts = {}) {
+  if (st.morphing && !opts.mode) return; // a sheet is morphing into/out of the mini: leave it alone
+  const m = $('mini'), mode = opts.mode || miniMode();
   $('phone').classList.toggle('has-mini', !!mode);
   if (!mode) { m.hidden = true; m.dataset.key = ''; return; }
   let key, html;
@@ -845,9 +843,47 @@ function paintMini() {
   if (m.dataset.key !== key) { m.innerHTML = html; m.dataset.key = key; }
   if (m.hidden) {
     m.hidden = false;
-    if (m.animate) m.animate(reduced() ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }],
+    if (m.animate && !opts.quiet) m.animate(reduced() ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }],
       { duration: parseFloat(cssVar('--motion-duration-base')) || 250, easing: cssVar('--motion-easing-standard') });
   }
+}
+/* ---------- Sheet <-> mini player morph ----------
+   Collapse: the sheet's outline shrinks to exactly the mini player's box while its content fades early;
+   the mini player fades in over the last stretch, so the two read as one object. Expand is the reverse. */
+const miniBox = () => { const m = $('mini'); return m.hidden ? null : { top: m.offsetTop, left: m.offsetLeft, w: m.offsetWidth, h: m.offsetHeight }; };
+const insetTo = (el, r) => `inset(${r.top}px ${el.offsetWidth - r.left - r.w}px ${el.offsetHeight - r.top - r.h}px ${r.left}px round ${cssVar('--radius-card') || '24px'})`;
+function collapseToMini(el, mode, done) {
+  if (!mode) { exitDown(el, done); return; }               // nothing keeps playing: plain slide down
+  if (reduced() || !el.animate) { el.hidden = true; done(); return; }
+  st.morphing = true;
+  paintMini({ mode, quiet: true });                         // place the mini player (invisible) so we know its box
+  const m = $('mini'), box = miniBox(), dur = parseFloat(cssVar('--motion-duration-slow')) || 400;
+  m.style.opacity = '0';
+  el.classList.add('morphing');
+  const shape = el.animate([
+    { clipPath: 'inset(0px 0px 0px 0px round 0px)', opacity: 1 },
+    { opacity: 1, offset: 0.6 },
+    { clipPath: insetTo(el, box), opacity: 0 },
+  ], { duration: dur, easing: cssVar('--motion-easing-standard'), fill: 'forwards' });
+  const parts = [...el.children].map(c => c.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(16px) scale(.97)' }],
+    { duration: dur * 0.45, easing: cssVar('--motion-easing-exit'), fill: 'forwards' }));
+  const fadeIn = m.animate([{ opacity: 0 }, { opacity: 1 }], { duration: dur * 0.45, delay: dur * 0.55, easing: cssVar('--motion-easing-standard'), fill: 'forwards' });
+  shape.finished.then(() => {
+    el.hidden = true; el.classList.remove('morphing');
+    shape.cancel(); parts.forEach(a => a.cancel());
+    m.style.opacity = ''; fadeIn.cancel();
+    st.morphing = false; done(); paintMini({ quiet: true });
+  }, () => { st.morphing = false; });
+}
+function expandFromMini(el, box) {
+  if (!box || reduced() || !el.animate) { riseFrom(el); return; }
+  el.classList.add('morphing');
+  const dur = parseFloat(cssVar('--motion-duration-slow')) || 400;
+  const shape = el.animate([{ clipPath: insetTo(el, box) }, { clipPath: 'inset(0px 0px 0px 0px round 0px)' }],
+    { duration: dur, easing: cssVar('--motion-easing-standard') });
+  [...el.children].forEach(c => c.animate([{ opacity: 0, transform: 'translateY(16px) scale(.97)' }, { opacity: 1, transform: 'none' }],
+    { duration: dur * 0.6, delay: dur * 0.35, easing: cssVar('--motion-easing-standard'), fill: 'backwards' }));
+  shape.finished.then(() => el.classList.remove('morphing'), () => el.classList.remove('morphing'));
 }
 let toastTimer;
 function showToast(html) { const t = $('toast'); t.innerHTML = html; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, 5000); }
@@ -1033,8 +1069,8 @@ document.getElementById('phone').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   const ds = b.dataset;
   if (b.hasAttribute('data-mini-open')) {
-    if (miniMode() === 'live') { st.player = st.liveDj; renderPlayer(true); renderTabs(); paintMini(); } // stream is already playing: just bring the sheet back
-    else openDemand();
+    if (miniMode() === 'live') { const box = miniBox(); st.player = st.liveDj; renderPlayer(false); renderTabs(); expandFromMini($('s-player'), box); } // stream is already playing: grow the sheet back out of the mini
+    else openDemand(true);
     return;
   }
   if (b.hasAttribute('data-mini-toggle')) {
@@ -1042,7 +1078,7 @@ document.getElementById('phone').addEventListener('click', e => {
     else { st.playing = !st.playing; paintPlayButton(); if (st.playing) { if (st.src === 'demand') audio.resume(); else playDemand(st.track.pos); } else if (st.src === 'demand') audio.pause(); }
     paintMini(); return;
   }
-  if (b.hasAttribute('data-demand-close')) { exitDown($('s-demand'), paintMini); return; } // minimize: keeps playing in the mini player
+  if (b.hasAttribute('data-demand-close')) { collapseToMini($('s-demand'), st.demandOn ? 'demand' : null, paintMini); return; } // minimize: keeps playing in the mini player
   if (ds.replay) { startReplay(ds.replay, ds.dj); return; }
   if (ds.tab) return go(ds.tab);
   if (ds.go) return go(ds.go);
@@ -1054,7 +1090,7 @@ document.getElementById('phone').addEventListener('click', e => {
     if (switching) { switchPlayer(dj); return; }
     renderPlayer(true); renderTabs();
     setTimeout(() => { if (st.player === dj && st.liveOn) playLive(dj); }, reduced() ? 0 : parseFloat(cssVar('--motion-duration-slow')) || 400); return; }
-  if (b.hasAttribute('data-close')) { const back = st.tab; if (!st.liveOn) st.liveDj = null; exitDown($('s-player'), () => { st.player = null; go(back); }) /* minimize: the stream keeps playing in the mini player; no blur veil on top */; return; }
+  if (b.hasAttribute('data-close')) { const back = st.tab; if (!st.liveOn) st.liveDj = null; collapseToMini($('s-player'), st.liveOn && st.liveDj ? 'live' : null, () => { st.player = null; go(back); }) /* minimize: the stream keeps playing in the mini player; no blur veil on top */; return; }
   if (b.hasAttribute('data-livetoggle')) {
     st.liveOn = !st.liveOn; paintLiveState();
     if (audio.available(st.player)) { if (st.liveOn) playLive(st.player); else { audio.pause(); } } // Stop, never pause-and-resume: Start rejoins at the live point

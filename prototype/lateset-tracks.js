@@ -20,4 +20,5 @@ window.LATESET_TRACKS = {
   jl: SAMPLE, // Juniper Lake   · Rose Hour Sessions (Jazz)
   tv: SAMPLE, // Theo Vance     · Night Shift (Techno)
   eb: SAMPLE, // Ezra Bloom     · Pillow Tapes (Lo-fi)
+  cr: "https://open.spotify.com/track/27QvYgBk0CHOVHthWnkuWt", // Cerulean · That's All (Pop) — "Vogue" by Madonna
 };
