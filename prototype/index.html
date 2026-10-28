@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="https://w.soundcloud.com/player/api.js"></script>
-<script src="lateset-tracks.js"></script>
+<script src="lateset-tracks.js?v=2026-10-27"></script>
 <title>Lateset Prototype</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -113,7 +113,7 @@ button:active { transform: scale(.96); transition-duration: var(--motion-duratio
 }
 .screen::-webkit-scrollbar { display: none; }
 .overlay { background: linear-gradient(165deg, var(--color-wall-top), var(--color-wall-mid) 55%, var(--color-wall-bottom)); z-index: 2; padding-top: var(--spacing-6); gap: var(--spacing-4); }
-.overlay { will-change: clip-path, opacity; }
+.overlay { will-change: transform; box-shadow: 0 -12px 32px var(--shadow-medium); }
 
 /* Type */
 .display { font-family: var(--font-display); font-weight: 800; font-size: 34px; line-height: .95; text-transform: uppercase; margin: 0; letter-spacing: 0; }
@@ -168,7 +168,7 @@ button:active { transform: scale(.96); transition-duration: var(--motion-duratio
 /* Chips */
 .chips { display: flex; gap: var(--spacing-2); overflow-x: auto; margin-inline: calc(-1 * var(--spacing-6)); padding: 2px var(--spacing-6); scrollbar-width: none; flex-shrink: 0; }
 .chips::-webkit-scrollbar { display: none; }
-.chip { flex-shrink: 0; height: 40px; padding: 0 var(--spacing-4); border-radius: var(--radius-pill); font-size: 14px; font-weight: 700; }
+.chip { transition: background-color var(--motion-duration-fast) var(--motion-easing-standard), color var(--motion-duration-fast) var(--motion-easing-standard), box-shadow var(--motion-duration-fast) var(--motion-easing-standard), transform var(--motion-duration-base) var(--motion-easing-spring); flex-shrink: 0; height: 40px; padding: 0 var(--spacing-4); border-radius: var(--radius-pill); font-size: 14px; font-weight: 700; }
 .chip[aria-pressed="true"], .day[aria-pressed="true"] { background: var(--color-accent); color: var(--color-on-accent); border-color: var(--color-accent); box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
 
 /* DJ tile */
@@ -182,7 +182,7 @@ button:active { transform: scale(.96); transition-duration: var(--motion-duratio
 .g-ambient { background: linear-gradient(135deg, var(--color-genre-ambient), var(--color-genre-ambient-end)); }
 
 /* Rows & cards */
-.list { display: flex; flex-direction: column; gap: var(--spacing-3); }
+.list { position: relative; display: flex; flex-direction: column; gap: var(--spacing-3); }
 .row { display: flex; align-items: center; gap: var(--spacing-3); padding: var(--spacing-3); min-width: 0; }
 .row .grow { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .meta { display: flex; align-items: center; gap: var(--spacing-1_5); }
@@ -248,6 +248,13 @@ button:active { transform: scale(.96); transition-duration: var(--motion-duratio
 .fav .wrap { position: relative; padding-bottom: 6px; }
 .fav .badge { position: absolute; left: 50%; bottom: -2px; transform: translateX(-50%); border: 2px solid var(--color-control); }
 .fav .name { font-size: 12px; font-weight: 600; line-height: 1.25; }
+.also-live { padding: var(--spacing-4); display: flex; flex-direction: column; gap: var(--spacing-3); flex-shrink: 0; }
+.also-live .eyebrow { display: flex; align-items: center; justify-content: center; gap: var(--spacing-1_5); }
+.also-live .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-live); }
+.also-live .list-h { display: flex; gap: var(--spacing-4); overflow-x: auto; scrollbar-width: none; margin: calc(-1 * var(--spacing-1)); padding: var(--spacing-1); }
+.also-live .list-h::-webkit-scrollbar { display: none; }
+.also-live .list-h > :first-child { margin-left: auto; } /* centered, but still scrolls safely if it ever overflows */
+.also-live .list-h > :last-child { margin-right: auto; }
 .account { gap: var(--spacing-3_5); padding: var(--spacing-3_5); }
 .account .name { font-size: 18px; font-weight: 800; line-height: 1.3; margin: 0; }
 .account .caption { margin: 0; }
@@ -295,8 +302,26 @@ button:active { transform: scale(.96); transition-duration: var(--motion-duratio
   body { display: block; padding: 0; }
   .stage { width: 100vw; height: 100vh; height: 100dvh; }
   .phone { width: 100vw; height: 100vh; height: 100dvh; transform: none; border-radius: 0; border: 0; box-shadow: none; }
-  .credit { right: var(--spacing-4); bottom: 2px; z-index: 6; } /* in the gap under the tab bar */
 }
+
+/* Credit is desktop-only: hidden on phones and tablets */
+@media (max-width: 1024px) { .credit { display: none; } }
+
+/* Mini player: docked above the tab bar while audio plays and the full player is closed.
+   Glass/Raised like the tab bar (floating chrome, so not glass-in-glass). */
+.mini { position: absolute; left: var(--spacing-4); right: var(--spacing-4); bottom: calc(var(--spacing-4) + 56px + 2 * var(--spacing-2) + 2px + var(--spacing-4)); z-index: 5; /* 16px above the tab bar (tab 56 + padding + border) */
+  display: flex; align-items: center; gap: var(--spacing-2); padding: var(--spacing-2); border-radius: var(--radius-card); }
+.mini-open { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--spacing-3); text-align: left; min-height: var(--size-touch-min); border-radius: var(--radius-tile); }
+.mini-open .grow { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mini-open .title-sm, .mini-open .caption { margin: 0; }
+.mini .ib { margin-right: var(--spacing-1); }
+.phone.has-mini .screen:not(.overlay) { padding-bottom: calc(var(--tabbar-clearance) + 64px + var(--spacing-4)); }
+.phone.has-mini .toast { bottom: calc(var(--tabbar-clearance) + 64px + var(--spacing-6)); }
+
+/* Replay: listening history */
+.history-day { margin-top: var(--spacing-1); }
+.history .kind { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--color-ink-muted); }
+.mini .tile .eq i { background: var(--color-on-accent); } /* white equalizer on the genre tile */
 
 /* Toast */
 .toast { position: absolute; left: var(--spacing-6); right: var(--spacing-6); bottom: calc(var(--tabbar-clearance) + var(--spacing-2)); z-index: 6; display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-3); padding: var(--spacing-2) var(--spacing-2) var(--spacing-2) var(--spacing-4); border-radius: var(--radius-tile); background: var(--color-ink); color: var(--color-on-accent); font-size: 13px; font-weight: 600; }
@@ -312,11 +337,13 @@ button:active { transform: scale(.96); transition-duration: var(--motion-duratio
 <div class="stage" id="stage" inert><div class="phone" id="phone">
   <section class="screen" id="s-live" aria-label="Live"></section>
   <section class="screen" id="s-schedule" aria-label="Schedule" hidden></section>
-  <section class="screen" id="s-playing" aria-label="Playing" hidden></section>
+  <section class="screen" id="s-playing" aria-label="Replay" hidden></section>
+  <section class="screen overlay" id="s-demand" aria-label="Replay player" hidden></section>
   <section class="screen" id="s-profile" aria-label="Profile" hidden></section>
   <section class="screen overlay" id="s-player" aria-label="Live player" hidden></section>
   <div class="veil" id="veil" aria-hidden="true"></div>
   <div class="toast" id="toast" role="status" hidden></div>
+  <div class="mini glass-raised" id="mini" role="region" aria-label="Now playing" hidden></div>
   <nav class="tabbar glass-raised" aria-label="Main">
     <span class="pill" aria-hidden="true"></span>
     <button class="tab" data-tab="live"></button>
@@ -354,7 +381,7 @@ const I = {
   more: s('<circle cx="5.5" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="18.5" cy="12" r="1.2" fill="currentColor"/>'),
   gear: s('<circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/>'),
 };
-const TAB_LABEL = { live: 'Live', schedule: 'Schedule', playing: 'Playing', profile: 'Profile' };
+const TAB_LABEL = { live: 'Live', schedule: 'Schedule', playing: 'Replay', profile: 'Profile' };
 
 // Example data from the Figma Page Mocks
 const DJ = {
@@ -386,20 +413,24 @@ function setToggle(btn, on, iconOn, iconOff, label) {
   if (label) btn.setAttribute('aria-label', label);
 }
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+const REPLAY_LEN = 30 * 60; // replays run 30 min; the DJ's song loops underneath
 const SAVED = [
-  { id: 1, title: 'Late Bloom', dj: 'zb', date: 'Oct 9', dur: '2 hr', len: 7200 },
-  { id: 2, title: 'Rose Hour Sessions', dj: 'jl', date: 'Oct 8', dur: '2 hr', len: 7200 },
-  { id: 3, title: 'Adivas', dj: 'ml', date: 'Oct 6', dur: '2 hr', len: 7200 },
-  { id: 4, title: 'Soft Static', dj: 'ms', date: 'Oct 3', dur: '90 min', len: 5400 },
-  { id: 5, title: 'Diva Down', dj: 'jr', date: 'Oct 1', dur: '4 min', len: 220 },
+  { id: 1, title: 'Late Bloom', dj: 'zb', date: 'Oct 9', dur: '30 min', len: REPLAY_LEN },
+  { id: 2, title: 'Rose Hour Sessions', dj: 'jl', date: 'Oct 8', dur: '30 min', len: REPLAY_LEN },
+  { id: 3, title: 'Adivas', dj: 'ml', date: 'Oct 6', dur: '30 min', len: REPLAY_LEN },
+  { id: 4, title: 'Soft Static', dj: 'ms', date: 'Oct 3', dur: '30 min', len: REPLAY_LEN },
+  { id: 5, title: 'Diva Down', dj: 'jr', date: 'Oct 1', dur: '30 min', len: REPLAY_LEN },
 ];
 
 const st = {
   tab: 'live', genre: 'all', day: TODAY,
   player: null, liveOn: false, liveFav: {},
-  track: { title: 'Diva Down', dj: 'jr', pos: 42, len: 220 }, playing: false,
+  track: { title: 'Diva Down', dj: 'jr', pos: 42, len: REPLAY_LEN }, playing: false,
+  songDur: 0, loopBase: 0, // replay timeline = loopBase (finished loops) + position in the song
   shuffle: false, repeat: true, trackFav: false,
   removed: new Set(),
+  liveDj: null,     // DJ whose live stream is on, even while the full player is minimized
+  demandOn: false,  // an on-demand set has been started
 };
 
 const $ = id => document.getElementById(id);
@@ -444,6 +475,30 @@ function liveListHTML() {
           <button class="ib solid" data-tune="${k}" aria-label="Tune in to ${esc(d.name)}">${I.play}</button>
         </article>`; }).join('') : `
         <div class="glass-card empty"><p class="body-sm">Nobody is spinning ${esc(genreName.toLowerCase())} right now. Check the schedule for the next set.</p></div>`;
+}
+// Genre filter: cards that stay glide to their new spot, cards that leave fade where they were,
+// new cards fade in. Everything starts on the same frame, so there's no waiting step.
+function swapLiveList() {
+  const list = $('live-list'), ms = n => parseFloat(cssVar(n)) || 0;
+  if (reduced() || !list.animate) { list.innerHTML = liveListHTML(); return; }
+  list.querySelectorAll('.ghost').forEach(g => g.remove());
+  const keyOf = el => el.querySelector('[data-tune]')?.dataset.tune || 'empty';
+  const before = new Map([...list.children].map(el => [keyOf(el), { top: el.offsetTop, left: el.offsetLeft, w: el.offsetWidth, el }]));
+  list.innerHTML = liveListHTML();
+  const base = ms('--motion-duration-base') || 250, ease = cssVar('--motion-easing-standard');
+  const kept = new Set();
+  [...list.children].forEach(el => {
+    const was = before.get(keyOf(el));
+    if (was) { kept.add(keyOf(el)); const dy = was.top - el.offsetTop; if (dy) el.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: base, easing: ease }); }
+    else el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: base, easing: ease });
+  });
+  before.forEach((was, k) => { // leaving cards: a non-interactive copy fades out in place
+    if (kept.has(k)) return;
+    const g = was.el.cloneNode(true); g.classList.add('ghost'); g.setAttribute('aria-hidden', 'true'); g.inert = true;
+    Object.assign(g.style, { position: 'absolute', top: was.top + 'px', left: was.left + 'px', width: was.w + 'px', margin: 0, pointerEvents: 'none' });
+    list.appendChild(g);
+    g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ms('--motion-duration-fast') || 150, easing: cssVar('--motion-easing-exit'), fill: 'forwards' }).finished.then(() => g.remove(), () => g.remove());
+  });
 }
 function renderLive() {
   $('s-live').innerHTML = `
@@ -495,23 +550,48 @@ function renderSchedule() {
 const reduced = () => document.documentElement.dataset.motion === 'reduced';
 const mq = matchMedia('(prefers-reduced-motion: reduce)');
 function setMotion(m) { document.documentElement.dataset.motion = m; }
-function riseFrom(el, fromEl) {
+// The live player is a sheet: it slides up over the current screen and back down on close.
+// Transform-only so the glass blur inside it isn't repainted every frame.
+function riseFrom(el) {
   if (!el.animate) return;
-  if (reduced() || !fromEl) { el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250, easing: 'ease-in-out' }); return; }
-  const ph = $('phone').getBoundingClientRect(), r = fromEl.getBoundingClientRect();
-  const p = $('phone'), k = ph.width / p.offsetWidth;
-  const t = (r.top - ph.top) / k, l = (r.left - ph.left) / k;
-  const rt = p.offsetWidth - l - r.width / k, bt = p.offsetHeight - t - r.height / k;
-  el.animate([
-    { clipPath: `inset(${t}px ${rt}px ${bt}px ${l}px round 24px)`, opacity: .35, transform: 'translateY(8px)' },
-    { clipPath: 'inset(0px 0px 0px 0px round 0px)', opacity: 1, transform: 'none' },
-  ], { duration: parseFloat(cssVar('--motion-duration-slow')) || 400, easing: cssVar('--motion-easing-standard') });
+  if (reduced()) { el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: parseFloat(cssVar('--motion-duration-base')) || 250, easing: cssVar('--motion-easing-standard') }); return; }
+  el.animate([{ transform: 'translateY(100%)' }, { transform: 'none' }],
+    { duration: parseFloat(cssVar('--motion-duration-slow')) || 400, easing: cssVar('--motion-easing-standard') });
 }
 function exitDown(el, done) {
   if (reduced() || !el.animate) { done(); return; }
-  const a = el.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateY(48px)', opacity: 0 }],
+  const a = el.animate([{ transform: 'none' }, { transform: 'translateY(100%)' }],
     { duration: parseFloat(cssVar('--motion-duration-base')) || 250, easing: cssVar('--motion-easing-exit') || 'ease-in', fill: 'forwards' });
   a.onfinish = () => { el.hidden = true; a.cancel(); done(); }; // hide first, then drop the held end state so the next open isn't invisible
+}
+// Switching DJs inside the open sheet: everything that looks the same for every DJ (glass cards, cover
+// gradient, LIVE badge, play button) stays perfectly still. Only the text and circles that change cross-fade,
+// so there's no bright blink. Audio starts once it has settled.
+let switchSeq = 0;
+function switchPlayer(dj) {
+  const el = $('s-player'), seq = ++switchSeq;
+  const parts = () => [...el.querySelectorAll('.art > *, .panel > div:not([class]), .live-status .status-text, #live-elapsed, .also-live .fav')];
+  const ms = n => parseFloat(cssVar(n)) || 0;
+  if (reduced() || !el.animate) { renderPlayer(false); playLive(dj); return; }
+  const outs = parts().map(c => c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ms('--motion-duration-fast') || 150, easing: cssVar('--motion-easing-exit'), fill: 'forwards' }));
+  outs[0].finished.then(() => {
+    if (seq !== switchSeq) return; // a newer tap took over
+    renderPlayer(false); // same layout, so the cards don't move and the scroll position is kept
+    const ins = parts().map(c => c.animate([{ opacity: 0 }, { opacity: 1 }],
+      { duration: ms('--motion-duration-base') || 250, easing: cssVar('--motion-easing-standard'), fill: 'backwards' }));
+    Promise.all(ins.map(a => a.finished)).then(() => { if (seq === switchSeq && st.player === dj && st.liveOn) playLive(dj); }, () => {});
+  }, () => {});
+}
+function alsoLiveHTML(current) {
+  const others = LIVE_ORDER.filter(k => k !== current && DJ[k].live).slice(0, 3);
+  if (!others.length) return '';
+  return `
+    <section class="glass-card also-live" aria-label="Also live now">
+      <h2 class="eyebrow"><span class="dot" aria-hidden="true"></span>Also live now</h2>
+      <div class="list-h">
+        ${others.map(k => { const o = DJ[k]; return `<button class="fav" data-tune="${k}" aria-label="${esc(o.name)} is live. Tune in"><span class="wrap">${tile(o, 'round')}${liveBadge()}</span><span class="name">${esc(o.name)}</span></button>`; }).join('')}
+      </div>
+    </section>`;
 }
 function renderPlayer(rise, fromEl) {
   const d = DJ[st.player];
@@ -539,24 +619,21 @@ function renderPlayer(rise, fromEl) {
       </div>
       <button class="big-play" data-livetoggle aria-label="${st.liveOn ? 'Stop listening to ' : 'Start listening to '}${esc(d.name)}">${st.liveOn ? I.stop : I.play}</button>
     </div>
-    <button class="glass-card row" data-go="schedule" style="text-align:left" aria-label="Up next at 10:00 PM: Mirae Song, ambient. Open the schedule">
-      ${tile(DJ.ms, 'sm')}
-      <div class="grow"><span class="eyebrow" style="font-size:12px">Up next · <span class="tnum">10:00 PM</span></span><span class="title-md clip">Mirae Song · Ambient</span></div>
-      <span class="ib" aria-hidden="true">${I.right}</span>
-    </button>`;
+    ${alsoLiveHTML(st.player)}`;
   el.getAnimations().forEach(a => a.cancel());
   el.hidden = false;
   fitCovers();
   if (rise) { el.scrollTop = 0; riseFrom(el, fromEl); }
+  paintMini();
 }
 
 /* ---------- Playing ---------- */
 function renderPlaying() {
   const t = st.track, d = DJ[t.dj];
-  $('s-playing').innerHTML = `
+  $('s-demand').innerHTML = `
     <div class="glass-subtle panel">
       <div class="panel-top">
-        <button class="ib" data-go="profile" aria-label="Minimize the player">${I.down}</button>
+        <button class="ib" data-demand-close aria-label="Minimize the player">${I.down}</button>
         <span class="eyebrow" style="font-size:12px">Now playing</span>
         <button class="ib" aria-label="More options for ${esc(t.title)}">${I.more}</button>
       </div>
@@ -596,13 +673,14 @@ function paintLiveState() {
   b.setAttribute('aria-label', (st.liveOn ? 'Stop listening to ' : 'Start listening to ') + d.name);
 }
 function paintPlayButton() {
-  const b = document.querySelector('#s-playing [data-playtoggle]'); if (!b) return;
+  const b = document.querySelector('#s-demand [data-playtoggle]'); if (!b) return;
   b.innerHTML = st.playing ? I.pause : I.play;
   b.setAttribute('aria-label', (st.playing ? 'Pause ' : 'Play ') + st.track.title);
 }
 function paintSeek() {
   const r = $('seek'); if (!r) return;
   const t = st.track;
+  r.max = t.len; // the real length arrives from Spotify after load; keep the thumb and the fill on the same scale
   r.value = t.pos;
   r.style.setProperty('--p', (t.pos / t.len * 100) + '%');
   r.setAttribute('aria-valuetext', `${fmt(t.pos)} of ${fmt(t.len)}`);
@@ -652,6 +730,7 @@ const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(
 function showScreen(tab) {
   ['live', 'schedule', 'playing', 'profile'].forEach(k => $('s-' + k).hidden = k !== tab);
   $('s-player').hidden = !st.player;
+  $('s-demand').hidden = true;
 }
 function withVeil(swap) { // blur out (fast, exit) → swap at peak → sharpen in (base, standard)
   const v = $('veil');
@@ -680,12 +759,95 @@ function go(tab) {
   st.player = null; st.tab = tab;
   renderTabs(); // pill starts sliding right away
   const swap = () => {
-    ({ live: renderLive, schedule: renderSchedule, playing: renderPlaying, profile: renderProfile })[tab]();
+    ({ live: renderLive, schedule: renderSchedule, playing: renderReplay, profile: renderProfile })[tab]();
     showScreen(tab);
     $('s-' + tab).scrollTop = 0;
     fitCovers();
+    paintMini();
   };
   if (changed) withVeil(swap); else swap();
+}
+/* ---------- Replay: running history of what you listened to ---------- */
+const nowLabel = () => new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+st.history = [ // sample listening from earlier days, newest first
+  { kind: 'live', dj: 'zb', title: 'Late Bloom', day: 'Yesterday', time: '9:12 PM' },
+  { kind: 'replay', dj: 'jl', title: 'Rose Hour Sessions', day: 'Yesterday', time: '6:40 PM' },
+  { kind: 'live', dj: 'ml', title: 'Adivas', day: 'Oct 14', time: '11:05 PM' },
+  { kind: 'replay', dj: 'ms', title: 'Soft Static', day: 'Oct 14', time: '7:30 PM' },
+];
+function addHistory(kind, dj, title) {
+  const h = st.history[0];
+  if (h && h.day === 'Today' && h.kind === kind && h.title === title) return; // same thing again: one running entry
+  st.history.unshift({ kind, dj, title, day: 'Today', time: nowLabel() });
+  if (st.tab === 'playing' && !$('s-playing').hidden) renderReplay();
+}
+function renderReplay() {
+  const days = [...new Set(st.history.map(h => h.day))];
+  $('s-playing').innerHTML = `
+    <div><h1 class="display">Replay</h1><p class="body-sm" style="margin-top:6px">Everything you've listened to, newest first</p></div>
+    ${days.map(day => `
+      <h2 class="eyebrow section-head history-day">${esc(day)}</h2>
+      <div class="list history">
+        ${st.history.filter(h => h.day === day).map(h => { const d = DJ[h.dj]; return `
+        <article class="glass-card row">
+          ${tile(d, 'sm')}
+          <div class="grow">
+            <h3 class="title-md clip">${esc(h.title)}</h3>
+            <p class="body-sm clip">${esc(d.name)} · <span class="kind">${h.kind === 'live' ? 'Heard live' : 'Replay'}</span> · <span class="tnum">${esc(h.time)}</span></p>
+          </div>
+          <button class="ib solid" data-replay="${esc(h.title)}" data-dj="${h.dj}" aria-label="Replay ${esc(h.title)} by ${esc(d.name)}">${I.play}</button>
+        </article>`; }).join('')}
+      </div>`).join('')}`;
+}
+function openDemand() {
+  const el = $('s-demand');
+  renderPlaying();
+  el.getAnimations().forEach(a => a.cancel());
+  el.hidden = false; el.scrollTop = 0;
+  fitCovers(); riseFrom(el); paintMini();
+}
+function startReplay(title, dj) {
+  const saved = SAVED.find(x => x.title === title);
+  st.track = { title, dj, pos: 0, len: REPLAY_LEN };
+  st.playing = true; st.liveOn = false; st.liveDj = null; st.demandOn = true;
+  if (st.player) { st.player = null; $('s-player').hidden = true; renderTabs(); }
+  playDemand(0); addHistory('replay', dj, title); openDemand();
+}
+
+/* ---------- Mini player ---------- */
+function miniMode() {
+  const sheetOpen = (!!st.player && !$('s-player').hidden) || !$('s-demand').hidden;
+  if (sheetOpen) return null;
+  if (st.liveDj && st.liveOn) return 'live';
+  if (st.demandOn) return 'demand';
+  return null;
+}
+function paintMini() {
+  const m = $('mini'), mode = miniMode();
+  $('phone').classList.toggle('has-mini', !!mode);
+  if (!mode) { m.hidden = true; m.dataset.key = ''; return; }
+  let key, html;
+  if (mode === 'live') {
+    const d = DJ[st.liveDj]; key = 'live:' + st.liveDj;
+    html = `<button class="mini-open" data-mini-open aria-label="Open the live player for ${esc(d.name)}">
+        <span class="tile sm g-${d.genre}" aria-hidden="true"><span class="eq on"><i></i><i></i><i></i><i></i></span></span>
+        <span class="grow"><span class="title-sm clip">${esc(d.set)}</span><span class="meta">${liveBadge()}<span class="caption clip">${esc(d.name)}</span></span></span>
+      </button>
+      <button class="ib solid" data-mini-toggle aria-label="Stop listening to ${esc(d.name)}">${I.stop}</button>`;
+  } else {
+    const t = st.track, d = DJ[t.dj]; key = 'demand:' + t.title + ':' + st.playing;
+    html = `<button class="mini-open" data-mini-open aria-label="Open the player for ${esc(t.title)}">
+        <span class="tile sm g-${d.genre}" aria-hidden="true"><span class="eq ${st.playing ? 'on' : ''}"><i></i><i></i><i></i><i></i></span></span>
+        <span class="grow"><span class="title-sm clip">${esc(t.title)}</span><span class="caption clip">${esc(d.name)}</span></span>
+      </button>
+      <button class="ib solid" data-mini-toggle aria-label="${st.playing ? 'Pause ' : 'Play '}${esc(t.title)}">${st.playing ? I.pause : I.play}</button>`;
+  }
+  if (m.dataset.key !== key) { m.innerHTML = html; m.dataset.key = key; }
+  if (m.hidden) {
+    m.hidden = false;
+    if (m.animate) m.animate(reduced() ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }],
+      { duration: parseFloat(cssVar('--motion-duration-base')) || 250, easing: cssVar('--motion-easing-standard') });
+  }
 }
 let toastTimer;
 function showToast(html) { const t = $('toast'); t.innerHTML = html; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, 5000); }
@@ -814,27 +976,39 @@ st.src = null;       // 'live' | 'demand' | null — what the real audio is play
 let dragging = false;
 audio.on('progress', (sec, dur) => {
   if (st.src !== 'demand' || dragging) return;
-  st.track.pos = sec; if (dur) st.track.len = dur;
-  if (st.tab === 'playing') paintSeek();
+  if (dur) st.songDur = dur;
+  st.track.pos = Math.min(st.track.len, st.loopBase + sec);
+  paintSeek();
 });
 audio.on('state', (playing, finished) => {
   if (st.src === 'demand') {
-    if (finished && st.repeat) { audio.seek(0); audio.resume(); return; }
+    if (finished) {
+      if (st.loopBase + st.songDur < st.track.len - 1) { st.loopBase += st.songDur; audio.seek(0); audio.resume(); return; } // loop the song
+      if (st.repeat) { st.loopBase = 0; st.track.pos = 0; audio.seek(0); audio.resume(); paintSeek(); return; }           // 30 min done: start over
+    }
     st.playing = playing; paintPlayButton();
   } else if (st.src === 'live') {
     st.liveOn = playing; paintLiveState();
   }
+  paintMini();
 });
 audio.on('error', () => {
   showToast('<span>This track couldn\'t play. Check its link in lateset-tracks.js.</span>');
   st.src = null; st.playing = false; paintPlayButton();
 });
+function seekReplay(t) {
+  st.track.pos = t;
+  if (!st.songDur) return;
+  st.loopBase = Math.floor(t / st.songDur) * st.songDur;
+  audio.seek(t - st.loopBase);
+}
 function playDemand(startSec) {
   const t = st.track;
   if (!audio.available(t.dj)) { st.src = null; return false; }
   if (st.src === 'live') { st.liveOn = false; }
   st.src = 'demand';
-  audio.play(t.dj, startSec, dur => { if (dur) { st.track.len = dur; if (st.tab === 'playing') paintSeek(); } });
+  st.songDur = 0; st.loopBase = 0;
+  audio.play(t.dj, 0, dur => { if (dur) { st.songDur = dur; seekReplay(startSec || 0); paintSeek(); } });
   return true;
 }
 function playLive(dj) {
@@ -844,13 +1018,13 @@ function playLive(dj) {
 }
 
 setInterval(() => {
-  if (st.player && st.liveOn) { DJ[st.player].elapsed++; const e = $('live-elapsed'); if (e) e.textContent = fmt(DJ[st.player].elapsed); }
+  if (st.liveDj && st.liveOn) { DJ[st.liveDj].elapsed++; const e = $('live-elapsed'); if (e && st.player === st.liveDj) e.textContent = fmt(DJ[st.liveDj].elapsed); }
   if (st.playing && st.src !== 'demand') {
     const t = st.track;
     if (t.pos < t.len) t.pos++;
     else if (st.repeat) t.pos = 0;
     else { st.playing = false; paintPlayButton(); }
-    if (st.tab === 'playing') paintSeek();
+    paintSeek();
   }
 }, 1000);
 
@@ -858,14 +1032,29 @@ setInterval(() => {
 document.getElementById('phone').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   const ds = b.dataset;
+  if (b.hasAttribute('data-mini-open')) {
+    if (miniMode() === 'live') { st.player = st.liveDj; renderPlayer(true); renderTabs(); paintMini(); } // stream is already playing: just bring the sheet back
+    else openDemand();
+    return;
+  }
+  if (b.hasAttribute('data-mini-toggle')) {
+    if (miniMode() === 'live') { st.liveOn = false; st.liveDj = null; if (st.src === 'live') { audio.pause(); st.src = null; } } // live: Stop, never pause
+    else { st.playing = !st.playing; paintPlayButton(); if (st.playing) { if (st.src === 'demand') audio.resume(); else playDemand(st.track.pos); } else if (st.src === 'demand') audio.pause(); }
+    paintMini(); return;
+  }
+  if (b.hasAttribute('data-demand-close')) { exitDown($('s-demand'), paintMini); return; } // minimize: keeps playing in the mini player
+  if (ds.replay) { startReplay(ds.replay, ds.dj); return; }
   if (ds.tab) return go(ds.tab);
   if (ds.go) return go(ds.go);
-  if (ds.genre) { st.genre = ds.genre; document.querySelectorAll('[data-genre]').forEach(c => c.setAttribute('aria-pressed', c.dataset.genre === st.genre)); $('live-list').innerHTML = liveListHTML(); return; }
+  if (ds.genre) { if (st.genre === ds.genre) return; st.genre = ds.genre; document.querySelectorAll('[data-genre]').forEach(c => c.setAttribute('aria-pressed', c.dataset.genre === st.genre)); swapLiveList(); return; }
   if (ds.day) { st.day = +ds.day; document.querySelectorAll('[data-day]').forEach(c => c.setAttribute('aria-pressed', +c.dataset.day === st.day)); $('slot-list').innerHTML = slotsHTML(); return; }
   if (ds.remind !== undefined) { const sl = SLOTS[+ds.remind]; sl.remind = !sl.remind; b.setAttribute('aria-pressed', sl.remind); b.innerHTML = sl.remind ? I.bellOn : I.bell;
     showToast(`<span>${sl.remind ? 'Reminder set for' : 'Reminder off for'} ${esc(DJ[sl.dj].name)} at ${sl.time}.</span>`); return; }
-  if (ds.tune) { st.playing = false; paintPlayButton(); st.player = ds.tune; st.liveOn = true; renderPlayer(true, b.closest('article, .fav') || b); renderTabs(); playLive(ds.tune); return; }
-  if (b.hasAttribute('data-close')) { const back = st.tab; if (st.src === 'live') { audio.pause(); st.src = null; } exitDown($('s-player'), () => { st.liveOn = false; st.player = null; go(back); }) /* player already slid away: no blur veil on top */; return; }
+  if (ds.tune) { const dj = ds.tune, switching = !!st.player && !$('s-player').hidden; st.playing = false; paintPlayButton(); st.player = dj; st.liveDj = dj; st.liveOn = true; st.demandOn = false; $('s-demand').hidden = true; addHistory('live', dj, DJ[dj].set);
+    if (switching) { switchPlayer(dj); return; }
+    renderPlayer(true); renderTabs();
+    setTimeout(() => { if (st.player === dj && st.liveOn) playLive(dj); }, reduced() ? 0 : parseFloat(cssVar('--motion-duration-slow')) || 400); return; }
+  if (b.hasAttribute('data-close')) { const back = st.tab; if (!st.liveOn) st.liveDj = null; exitDown($('s-player'), () => { st.player = null; go(back); }) /* minimize: the stream keeps playing in the mini player; no blur veil on top */; return; }
   if (b.hasAttribute('data-livetoggle')) {
     st.liveOn = !st.liveOn; paintLiveState();
     if (audio.available(st.player)) { if (st.liveOn) playLive(st.player); else { audio.pause(); } } // Stop, never pause-and-resume: Start rejoins at the live point
@@ -873,7 +1062,7 @@ document.getElementById('phone').addEventListener('click', e => {
   }
   if (b.hasAttribute('data-livefav')) { const on = st.liveFav[st.player] = !st.liveFav[st.player]; setToggle(b, on, I.heartOn, I.heart); return; }
   if (b.hasAttribute('data-playtoggle')) {
-    st.playing = !st.playing; paintPlayButton();
+    st.playing = !st.playing; paintPlayButton(); if (st.playing) { st.demandOn = true; st.liveDj = null; }
     if (st.playing) { if (st.src === 'demand') audio.resume(); else playDemand(st.track.pos); }
     else if (st.src === 'demand') audio.pause();
     return;
@@ -881,9 +1070,9 @@ document.getElementById('phone').addEventListener('click', e => {
   if (b.hasAttribute('data-shuffle')) { st.shuffle = !st.shuffle; b.classList.toggle('flat', st.shuffle); setToggle(b, st.shuffle, I.shuffle.replace('stroke-width="1.8"', 'stroke-width="2.6"'), I.shuffle); return; }
   if (b.hasAttribute('data-repeat')) { st.repeat = !st.repeat; b.classList.toggle('flat', st.repeat); setToggle(b, st.repeat, I.repeatOn, I.repeat); return; }
   if (b.hasAttribute('data-trackfav')) { st.trackFav = !st.trackFav; setToggle(b, st.trackFav, I.heartOn, I.heart); return; }
-  if (b.hasAttribute('data-prev')) { st.track.pos = 0; paintSeek(); if (st.src === 'demand') audio.seek(0); return; }
-  if (b.hasAttribute('data-next')) { const i = SAVED.findIndex(x => x.title === st.track.title); const n = SAVED[(i + 1) % SAVED.length]; st.track = { title: n.title, dj: n.dj, pos: 0, len: n.len }; renderPlaying(); if (st.playing) playDemand(0); return; }
-  if (ds.playset) { const x = SAVED.find(y => y.id === +ds.playset); st.track = { title: x.title, dj: x.dj, pos: 0, len: x.len }; st.playing = true; st.liveOn = false; playDemand(0); go('playing'); return; }
+  if (b.hasAttribute('data-prev')) { st.track.pos = 0; paintSeek(); if (st.src === 'demand') seekReplay(0); return; }
+  if (b.hasAttribute('data-next')) { const i = SAVED.findIndex(x => x.title === st.track.title); const n = SAVED[(i + 1) % SAVED.length]; st.track = { title: n.title, dj: n.dj, pos: 0, len: REPLAY_LEN }; renderPlaying(); if (st.playing) { playDemand(0); addHistory('replay', n.dj, n.title); } return; }
+  if (ds.playset) { const x = SAVED.find(y => y.id === +ds.playset); startReplay(x.title, x.dj); return; }
   if (ds.unsave) { const id = +ds.unsave; const x = SAVED.find(y => y.id === id);
     if (st.removed.has(id)) { st.removed.delete(id); hideToast(); }
     else { st.removed.add(id); showToast(`<span>Removed ${esc(x.title)} from saved sets.</span><button data-undo="${id}">Undo</button>`); }
@@ -894,7 +1083,7 @@ document.getElementById('phone').addEventListener('input', e => {
   if (e.target.id === 'seek') { dragging = true; st.track.pos = +e.target.value; paintSeek(); }
 });
 document.getElementById('phone').addEventListener('change', e => {
-  if (e.target.id === 'seek') { dragging = false; if (st.src === 'demand') audio.seek(st.track.pos); }
+  if (e.target.id === 'seek') { dragging = false; if (st.src === 'demand') seekReplay(st.track.pos); }
 });
 
 mq.addEventListener && mq.addEventListener('change', () => setMotion(mq.matches ? 'reduced' : 'full'));

@@ -6,10 +6,10 @@
 //               in this browser; a 30-second preview if you're not)
 // No API key needed. Keep this file in the same folder as index.html.
 //
-// SAMPLE is SoundCloud's own example track (Forss, "Flickermood") from its Widget API docs,
-// so every DJ plays something until you add your own. Set a DJ to "" to use the simulated timer.
+// SAMPLE plays for every DJ who doesn't have their own song yet: "Girls Just Want to Have Fun" by Cyndi Lauper.
+// Set a DJ to "" to use the simulated timer.
 
-const SAMPLE = "https://api.soundcloud.com/tracks/293";
+const SAMPLE = "https://open.spotify.com/track/4y1LsJpmMti1PfRQV9AWWe";
 
 window.LATESET_TRACKS = {
   zb: "https://open.spotify.com/track/7JN46TALgEcGMhA83mWupQ", // Zara Bloom · Late Bloom (House) — "Lush Life (Alex Adair Remix)" by Zara Larsson

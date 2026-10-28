@@ -119,13 +119,15 @@ aren't visible in the drawing. Full specs live in Figma (component descriptions 
 | **Play Button** | The one primary playback control | Anything that isn't play/pause/stop | Large = live (Stop), Medium = on demand (Pause) |
 | **Seek Bar** | Scrubbing on-demand audio | Live streams | Remaining time shown as negative |
 | **Live Status** | Replacing the seek bar on live | On-demand audio | Status text is a live region; EQ is decorative |
-| **Tab Bar** | The 4 top-level destinations | Actions, filters | Order never changes: Live · Schedule · Playing · Profile |
+| **Tab Bar** | The 4 top-level destinations | Actions, filters | Order never changes: Live · Schedule · Replay · Profile |
 | **DJ Tile** | DJ identity without photos | Decoration | Genre picks the gradient; hidden from screen readers |
 | **Live Card** | A DJ streaming right now | Upcoming or past sets | One action: tune in |
 | **Favorite DJ** | A followed DJ in the Profile row | Live list on the home screen | Circle tile + name; LIVE badge only while they're live |
 | **Schedule Slot** | A set on the schedule | Live list on the home screen | Only the on-air slot is elevated |
 | **Saved Set Row** | A saved past set | Live content | Unsave is undoable until you leave the screen |
 | **Album Cover** | Typographic cover art | Photos | One word per line; 8 letters max per line on Deep |
+| **Mini Player** | Audio that keeps playing after the full player is minimized or you change tabs | Starting playback | Docked 16px above the Tab Bar on Glass/Raised. Genre tile shows a white equalizer (frozen when paused or reduced motion). Live = LIVE badge + Stop; Replay = Play/Pause. Tap to reopen the full player |
+| **History Row** | One thing you listened to, on Replay | Live tune-in | Always replays on demand (seek, skip, pause), even if that DJ is live now. Labeled "Heard live" or "Replay" with the time |
 
 ## 6. Screen intent
 
@@ -134,7 +136,7 @@ aren't visible in the drawing. Full specs live in Figma (component descriptions 
 | Live | "Who's on now?" | The first live card | Bury live cards below promos |
 | Schedule | "When is my DJ on?" | Today + the on-air slot | Open on any day but today |
 | Live Player | Listen live | The start/stop button | Show a seek bar |
-| Playing | Listen on demand | Cover art + play/pause | Look identical to the live player |
+| Replay | "What did I listen to?" — a running history, newest first, grouped by day | The most recent entry | Open the live player; every entry replays on demand. The on-demand player is a sheet that must not look identical to the live player |
 | Profile | My DJs and saved sets | Favorite DJs who are live | Mix live and saved in one list |
 
 ## 7. Motion intent
