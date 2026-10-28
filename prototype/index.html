@@ -289,12 +289,13 @@ button:active { transform: scale(.96); transition-duration: var(--motion-duratio
   background: linear-gradient(165deg, var(--color-wall-top), var(--color-wall-mid) 55%, var(--color-wall-bottom));
   transition: opacity var(--motion-duration-slow) var(--motion-easing-exit); }
 .loader.done { opacity: 0; pointer-events: none; }
-.loader-icons { display: flex; gap: var(--spacing-2); font-size: 40px; line-height: 1; }
-.loader-icons span { display: inline-block; }
+.moon { position: relative; width: 56px; height: 56px; border-radius: 50%; overflow: hidden;
+  background: linear-gradient(135deg, var(--color-art-blush-start), var(--color-genre-lofi));
+  box-shadow: 0 0 28px var(--color-art-blush-start); }
+.moon::after { content: ""; position: absolute; inset: -1px; border-radius: 50%; background: var(--color-wall-top); transform: translateX(55%); } /* the shadow that sweeps across */
 .loader p { margin: 0; font-size: 16px; font-weight: 700; color: var(--color-ink); }
-:root[data-motion="full"] .loader-icons span { animation: breathe var(--motion-duration-pulse) var(--motion-easing-loop) infinite; }
-:root[data-motion="full"] .loader-icons span:nth-child(2) { animation-delay: 200ms; }
-:root[data-motion="full"] .loader-icons span:nth-child(3) { animation-delay: 400ms; }
+:root[data-motion="full"] .moon::after { animation: moon-phase calc(var(--motion-duration-pulse) * 2) var(--motion-easing-loop) infinite; }
+@keyframes moon-phase { 0% { transform: translateX(0); } 50% { transform: translateX(102%); } 50.01% { transform: translateX(-102%); } 100% { transform: translateX(0); } } /* new → full → new */
 
 /* Credit, bottom right of the page */
 .credit { position: fixed; right: max(var(--spacing-4), env(safe-area-inset-right, 0px)); bottom: max(var(--spacing-3), env(safe-area-inset-bottom, 0px)); margin: 0;
@@ -339,7 +340,7 @@ button:active { transform: scale(.96); transition-duration: var(--motion-duratio
 
 </head>
 <body>
-<div class="loader" id="loader" role="status"><span class="loader-icons" aria-hidden="true"><span>💖</span><span>🎶</span><span>🎀</span></span><p>Loading…</p></div>
+<div class="loader" id="loader" role="status"><span class="moon" aria-hidden="true"></span><p>Loading…</p></div>
 <p class="credit">Created by Deia Green and Jamie Vanderwall 🎀</p>
 <div class="stage" id="stage" inert><div class="phone" id="phone">
   <section class="screen" id="s-live" aria-label="Live"></section>
@@ -393,8 +394,8 @@ const TAB_LABEL = { live: 'Live', schedule: 'Schedule', playing: 'Replay', profi
 // Example data from the Figma Page Mocks
 const DJ = {
   zb: { name: 'Zara Bloom', ini: 'ZB', genre: 'house', label: 'House', set: 'Late Bloom', listeners: '1.2k', live: true, onAir: '8:00 – 10:00 PM', elapsed: 134 },
-  rc: { name: 'DJ Reclaim', ini: 'DR', genre: 'house', label: 'Pop', set: 'Girls Just Wanna Have Agentic Design Systems', listeners: '8.8k', live: true, onAir: '7:30 – 9:30 PM', elapsed: 2710 },
-  dg: { name: 'Deia Green', ini: 'DG', genre: 'rnb', label: 'R&B', set: 'Dark and Stormy', live: false },
+  rc: { name: 'DJ Reclaim', ini: 'DR', genre: 'house', label: 'Pop', set: 'Girls Just Wanna', listeners: '6.4k', live: true, onAir: '7:30 – 9:30 PM', elapsed: 2710 },
+  dg: { name: 'Deia Green', ini: 'DG', genre: 'rnb', label: 'R&B', set: 'Dark and Stormy', listeners: '8.8k', live: true, onAir: '7:30 – 9:30 PM', elapsed: 2710 },
   ml: { name: 'DJ MarBear', ini: 'DM', genre: 'techno', label: 'Techno', set: 'Adivas', listeners: '2.4k', live: true, onAir: '7:00 – 9:00 PM', elapsed: 3925 },
   jr: { name: 'Jamie Rose', ini: 'JR', genre: 'house', label: 'Disco House', set: 'Diva Down', listeners: '222', live: true, onAir: '8:15 – 9:45 PM', elapsed: 420 },
   ms: { name: 'Mirae Song', ini: 'MS', genre: 'ambient', label: 'Ambient', set: 'Soft Static', live: false },
@@ -403,7 +404,7 @@ const DJ = {
   cr: { name: 'Cerulean', ini: 'C', genre: 'house', label: 'Pop', set: "That's All", listeners: '1.6k', live: true, onAir: '9:00 – 11:00 PM', elapsed: 1530 },
   eb: { name: 'Ezra Bloom', ini: 'EB', genre: 'lofi', label: 'Lo-fi', set: 'Pillow Tapes', live: false },
 };
-const LIVE_ORDER = ['rc', 'ml', 'jr', 'cr', 'zb'];
+const LIVE_ORDER = ['rc', 'dg', 'ml', 'jr', 'cr', 'zb'];
 const GENRES = [['all', 'All'], ['house', 'House'], ['rnb', 'R&B'], ['lofi', 'Lo-fi'], ['techno', 'Techno'], ['jazz', 'Jazz'], ['ambient', 'Ambient']];
 const DAYS = [['Mon', 12, 'Monday'], ['Tue', 13, 'Tuesday'], ['Wed', 14, 'Wednesday'], ['Thu', 15, 'Thursday'], ['Fri', 16, 'Friday'], ['Sat', 17, 'Saturday'], ['Sun', 18, 'Sunday']];
 const TODAY = 16;

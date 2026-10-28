@@ -14,7 +14,7 @@ const SAMPLE = "https://open.spotify.com/track/4y1LsJpmMti1PfRQV9AWWe";
 window.LATESET_TRACKS = {
   zb: "https://open.spotify.com/track/7JN46TALgEcGMhA83mWupQ", // Zara Bloom · Late Bloom (House) — "Lush Life (Alex Adair Remix)" by Zara Larsson
   dg: "https://open.spotify.com/track/22c6Yop5YVEAhw8UG6O1W1", // Deia Green · Dark and Stormy (R&B) — "My Muse" by Leon Thomas
-  rc: SAMPLE, // DJ Reclaim · Girls Just Wanna Have Agentic Design Systems (Pop) — "Girls Just Want to Have Fun" by Cyndi Lauper
+  rc: SAMPLE, // DJ Reclaim · Girls Just Wanna (Pop) — "Girls Just Want to Have Fun" by Cyndi Lauper
   ml: "https://open.spotify.com/track/4Ev2R78P8cMZcdmv3RCUlI", // DJ MarBear · Adivas (Techno)
   jr: "https://open.spotify.com/track/3T5X9UDD29mFzJeRQtUfst", // Jamie Rose · Diva Down (Disco House) — "The Winner Takes It All" by Cher
   ms: SAMPLE, // Mirae Song     · Soft Static (Ambient)
