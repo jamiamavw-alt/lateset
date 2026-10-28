@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="https://w.soundcloud.com/player/api.js"></script>
-<script src="lateset-tracks.js?v=2026-10-27b"></script>
+<script src="lateset-tracks.js?v=2026-10-27c"></script>
 <title>Lateset Prototype</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,6 +33,7 @@
   --color-genre-techno: #9c1450;  --color-genre-techno-end: #d2296f;
   --color-genre-jazz: #771040;    --color-genre-jazz-end: #c2185b;
   --color-genre-ambient: #520b2c; --color-genre-ambient-end: #9c1450;
+  --color-genre-rnb: #9c1450;    --color-genre-rnb-end: #df4f88; /* pink/700 → pink/400 */
   /* Cover art */
   --color-art-deep-start: #df4f88; --color-art-deep-mid: #d2296f; --color-art-deep-end: #771040;
   --color-art-blush-start: #eb7ba7; --color-art-blush-end: #df4f88;
@@ -181,6 +182,7 @@ button:active { transform: scale(.96); transition-duration: var(--motion-duratio
 .g-techno { background: linear-gradient(135deg, var(--color-genre-techno), var(--color-genre-techno-end)); }
 .g-jazz { background: linear-gradient(135deg, var(--color-genre-jazz), var(--color-genre-jazz-end)); }
 .g-ambient { background: linear-gradient(135deg, var(--color-genre-ambient), var(--color-genre-ambient-end)); }
+.g-rnb { background: linear-gradient(135deg, var(--color-genre-rnb), var(--color-genre-rnb-end)); }
 
 /* Rows & cards */
 .list { position: relative; display: flex; flex-direction: column; gap: var(--spacing-3); }
@@ -391,7 +393,8 @@ const TAB_LABEL = { live: 'Live', schedule: 'Schedule', playing: 'Replay', profi
 // Example data from the Figma Page Mocks
 const DJ = {
   zb: { name: 'Zara Bloom', ini: 'ZB', genre: 'house', label: 'House', set: 'Late Bloom', listeners: '1.2k', live: true, onAir: '8:00 – 10:00 PM', elapsed: 134 },
-  dg: { name: 'Deia Green', ini: 'DG', genre: 'lofi', label: 'R&B', set: 'Dark and Stormy', listeners: '8.8k', live: true, onAir: '7:30 – 9:30 PM', elapsed: 2710 },
+  rc: { name: 'DJ Reclaim', ini: 'DR', genre: 'house', label: 'Pop', set: 'Girls Just Wanna Have Agentic Design Systems', listeners: '8.8k', live: true, onAir: '7:30 – 9:30 PM', elapsed: 2710 },
+  dg: { name: 'Deia Green', ini: 'DG', genre: 'rnb', label: 'R&B', set: 'Dark and Stormy', live: false },
   ml: { name: 'DJ MarBear', ini: 'DM', genre: 'techno', label: 'Techno', set: 'Adivas', listeners: '2.4k', live: true, onAir: '7:00 – 9:00 PM', elapsed: 3925 },
   jr: { name: 'Jamie Rose', ini: 'JR', genre: 'house', label: 'Disco House', set: 'Diva Down', listeners: '222', live: true, onAir: '8:15 – 9:45 PM', elapsed: 420 },
   ms: { name: 'Mirae Song', ini: 'MS', genre: 'ambient', label: 'Ambient', set: 'Soft Static', live: false },
@@ -400,8 +403,8 @@ const DJ = {
   cr: { name: 'Cerulean', ini: 'C', genre: 'house', label: 'Pop', set: "That's All", listeners: '1.6k', live: true, onAir: '9:00 – 11:00 PM', elapsed: 1530 },
   eb: { name: 'Ezra Bloom', ini: 'EB', genre: 'lofi', label: 'Lo-fi', set: 'Pillow Tapes', live: false },
 };
-const LIVE_ORDER = ['dg', 'ml', 'jr', 'cr', 'zb'];
-const GENRES = [['all', 'All'], ['house', 'House'], ['lofi', 'Lo-fi'], ['techno', 'Techno'], ['jazz', 'Jazz'], ['ambient', 'Ambient']];
+const LIVE_ORDER = ['rc', 'ml', 'jr', 'cr', 'zb'];
+const GENRES = [['all', 'All'], ['house', 'House'], ['rnb', 'R&B'], ['lofi', 'Lo-fi'], ['techno', 'Techno'], ['jazz', 'Jazz'], ['ambient', 'Ambient']];
 const DAYS = [['Mon', 12, 'Monday'], ['Tue', 13, 'Tuesday'], ['Wed', 14, 'Wednesday'], ['Thu', 15, 'Thursday'], ['Fri', 16, 'Friday'], ['Sat', 17, 'Saturday'], ['Sun', 18, 'Sunday']];
 const TODAY = 16;
 const SLOTS = [
@@ -480,7 +483,7 @@ function liveListHTML() {
           </div>
           <button class="ib solid" data-tune="${k}" aria-label="Tune in to ${esc(d.name)}">${I.play}</button>
         </article>`; }).join('') : `
-        <div class="glass-card empty"><p class="body-sm">Nobody is spinning ${esc(genreName.toLowerCase())} right now. Check the schedule for the next set.</p></div>`;
+        <div class="glass-card empty"><p class="body-sm">Nobody is spinning ${esc(st.genre === 'rnb' ? genreName : genreName.toLowerCase())} right now. Check the schedule for the next set.</p></div>`;
 }
 // Genre filter: a straight cross-fade. The old cards fade out in place while the new set fades in,
 // on the same frame, so there's no waiting step and nothing slides.
@@ -936,7 +939,7 @@ const audio = (() => {
 
   /* Spotify engine (iFrame API — no key; full songs when logged in to Spotify in this browser, 30-second previews otherwise) */
   const sp = (() => {
-    let apiP = null, ctrl = null, uri = null, paused = true, pendingSeek = null, pendingCb = null;
+    let apiP = null, ctrlP = null, ctrl = null, uri = null, played = false, paused = true, pendingSeek = null, pendingCb = null;
     const toUri = u => { if (/^spotify:/.test(u)) return u; const m = u.match(/open\.spotify\.com\/(?:intl-[a-z]+\/)?(track|episode|album|playlist)\/([A-Za-z0-9]+)/); return m ? `spotify:${m[1]}:${m[2]}` : null; };
     function api() {
       if (!apiP) apiP = new Promise((res, rej) => {
@@ -963,24 +966,32 @@ const audio = (() => {
         handlers.state(!paused, finished);
       }
     }
+    // Build the (hidden) Spotify player once; resolves when its embed reports 'ready'
+    function player(u) {
+      if (!ctrlP) ctrlP = api().then(IFrameAPI => new Promise(res => {
+        const wrap = document.createElement('div'); wrap.className = 'sp-frame'; wrap.setAttribute('aria-hidden', 'true');
+        const holder = document.createElement('div'); wrap.appendChild(holder); document.body.appendChild(wrap);
+        IFrameAPI.createController(holder, { uri: u, width: 300, height: 80 }, c => {
+          ctrl = c; uri = u;
+          c.addListener('playback_update', onUpdate);
+          c.addListener('ready', () => res(c));
+          c.addListener('playback_update', () => res(c)); // some embeds never send 'ready'
+        });
+      }));
+      return ctrlP;
+    }
     return {
-      warm: api,
+      warm: url => { const u = toUri(url || ''); return u ? player(u) : api(); }, // loading screen waits for this
       ok: () => true,
       load(url, startSec, cb) {
         const u = toUri(url);
         if (!u) { handlers.error(); return; }
         pendingSeek = startSec || null; pendingCb = cb || null;
-        api().then(IFrameAPI => {
-          if (!ctrl) {
-            const wrap = document.createElement('div'); wrap.className = 'sp-frame'; wrap.setAttribute('aria-hidden', 'true');
-            const holder = document.createElement('div'); wrap.appendChild(holder); document.body.appendChild(wrap);
-            IFrameAPI.createController(holder, { uri: u, width: 300, height: 80 }, c => {
-              ctrl = c; uri = u;
-              c.addListener('playback_update', onUpdate);
-              c.addListener('ready', () => c.play());
-            });
-          } else if (u !== uri) { uri = u; ctrl.loadUri(u); ctrl.play(); }
-          else { ctrl.resume(); }
+        player(u).then(c => {
+          if (u !== uri) { uri = u; c.loadUri(u); c.play(); }
+          else if (played) c.resume();
+          else c.play();
+          played = true;
         }).catch(() => handlers.error());
       },
       resume() { ctrl && ctrl.resume(); },
@@ -993,9 +1004,12 @@ const audio = (() => {
   const engineFor = u => kind(u) === 'spotify' ? sp : kind(u) === 'soundcloud' && sc.ok() ? sc : null;
   return {
     // Resolves once every audio API the track list needs has loaded (SoundCloud loads in <head>)
-    warm() {
+    // Resolves once the Spotify player is built and has the first DJ's song loaded (SoundCloud loads in <head>)
+    warm(firstDj) {
       const urls = Object.values(tracks());
-      return urls.some(u => kind(u) === 'spotify') ? sp.warm() : Promise.resolve();
+      if (!urls.some(u => kind(u) === 'spotify')) return Promise.resolve();
+      const first = tracks()[firstDj];
+      return sp.warm(kind(first) === 'spotify' ? first : urls.find(u => kind(u) === 'spotify'));
     },
     available: dj => !!engineFor(tracks()[dj]),
     on: (name, fn) => { handlers[name] = fn; },
@@ -1130,7 +1144,7 @@ fitStage();
 go('live');
 booted = true;
 // Hold the loading screen until Spotify's API is ready; give up after 10s so a blocked network never traps the page
-Promise.race([audio.warm(), new Promise(r => setTimeout(r, 10000))]).catch(() => {}).then(() => {
+Promise.race([audio.warm(LIVE_ORDER[0]), new Promise(r => setTimeout(r, 10000))]).catch(() => {}).then(() => {
   $('stage').inert = false;
   const l = $('loader'); l.classList.add('done');
   setTimeout(() => l.remove(), 450);

@@ -87,6 +87,7 @@ Use these when the library doesn't directly answer the question. Rules are writt
 ### Layout & spacing
 - Spacing **MUST** come from `spacing/*` (Tailwind scale, 1 step = 4px). Never type a raw number.
 - Screen margins: `spacing/6` (24). Card padding: `spacing/3` (12). Section gap: `spacing/5` (20).
+- Floating chrome (Tab Bar, Mini Player) sits `spacing/4` (16) from the screen edges, so it reads as a layer above the content. The Mini Player docks `spacing/4` above the Tab Bar.
 - Corners **MUST** come from semantic radius tokens (`radius/card`, `radius/pill`, …), not the raw scale.
 - Every tappable thing **MUST** be at least `size/touch-min` (44×44).
 - Scroll views **MUST** leave 92px of bottom padding so the floating tab bar never covers the last row. (This is the one spacing value with no token yet. Use 92px here only; don't add a token without asking.)
