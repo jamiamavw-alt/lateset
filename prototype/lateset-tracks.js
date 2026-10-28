@@ -13,8 +13,8 @@ const SAMPLE = "https://api.soundcloud.com/tracks/293";
 
 window.LATESET_TRACKS = {
   zb: "https://open.spotify.com/track/1LFBygPkUZyFE0U7hJDWOb", // Zara Bloom · Late Bloom (House)
-  dg: "https://open.spotify.com/track/4y1LsJpmMti1PfRQV9AWWe", // Deia Green · Dark and Stormy (R&B)
-  ml: "https://open.spotify.com/track/79FJ0n0Csxoed8DtlVAcuF", // DJ MarBear · Concrete Sun (Techno)
+  dg: "https://open.spotify.com/track/22c6Yop5YVEAhw8UG6O1W1", // Deia Green · Dark and Stormy (R&B) — "My Muse" by Leon Thomas
+  ml: "https://open.spotify.com/track/4Ev2R78P8cMZcdmv3RCUlI", // DJ MarBear · Concrete Sun (Techno)
   jr: "https://open.spotify.com/track/7GjZZf77XJYaa5W4S2NbpB", // Jamie Rose · Low Tide Hours (Disco House)
   ms: SAMPLE, // Mirae Song     · Soft Static (Ambient)
   jl: SAMPLE, // Juniper Lake   · Rose Hour Sessions (Jazz)
