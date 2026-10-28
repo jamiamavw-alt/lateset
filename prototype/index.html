@@ -69,7 +69,8 @@
   /* Type */
   --font-display: "Syne", "Arial Black", system-ui, sans-serif;
   --font-ui: "Manrope", "Avenir Next", system-ui, -apple-system, sans-serif;
-  --tabbar-clearance: 92px; /* no Figma token yet */
+  --safe-bottom: 0px;       /* phones: space for the home indicator / browser bar (set below) */
+  --tabbar-clearance: calc(92px + var(--safe-bottom)); /* 92px has no Figma token yet */
 }
 
 html, body { height: 100%; }
@@ -264,7 +265,7 @@ button:active { transform: scale(.96); transition-duration: var(--motion-duratio
 .saved.removed .grow, .saved.removed .tile { opacity: .45; }
 
 /* Tab bar */
-.tabbar { position: absolute; left: var(--spacing-4); right: var(--spacing-4); bottom: var(--spacing-4); z-index: 5; display: flex; padding: var(--spacing-2); }
+.tabbar { position: absolute; left: var(--spacing-4); right: var(--spacing-4); bottom: calc(var(--spacing-4) + var(--safe-bottom)); z-index: 5; display: flex; padding: var(--spacing-2); }
 .tab { position: relative; z-index: 1; flex: 1; min-height: 56px; border-radius: var(--radius-pill); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 700; }
 .tab svg { width: 22px; height: 22px; }
 .tab[aria-current="page"] { color: var(--color-on-accent); }
@@ -299,6 +300,7 @@ button:active { transform: scale(.96); transition-duration: var(--motion-duratio
 
 /* Phones: the app fills the screen at 1:1, no device frame or page background around it */
 @media (max-width: 500px) {
+  :root { --safe-bottom: env(safe-area-inset-bottom, 0px); } /* tab bar + mini player sit above the iPhone home indicator */
   body { display: block; padding: 0; }
   .stage { width: 100vw; height: 100vh; height: 100dvh; }
   .phone { width: 100vw; height: 100vh; height: 100dvh; transform: none; border-radius: 0; border: 0; box-shadow: none; }
@@ -309,7 +311,7 @@ button:active { transform: scale(.96); transition-duration: var(--motion-duratio
 
 /* Mini player: docked above the tab bar while audio plays and the full player is closed.
    Glass/Raised like the tab bar (floating chrome, so not glass-in-glass). */
-.mini { position: absolute; left: var(--spacing-4); right: var(--spacing-4); bottom: calc(var(--spacing-4) + 56px + 2 * var(--spacing-2) + 2px + var(--spacing-4)); z-index: 5; /* 16px above the tab bar (tab 56 + padding + border) */
+.mini { position: absolute; left: var(--spacing-4); right: var(--spacing-4); bottom: calc(var(--safe-bottom) + var(--spacing-4) + 56px + 2 * var(--spacing-2) + 2px + var(--spacing-4)); z-index: 5; /* 16px above the tab bar (tab 56 + padding + border) */
   display: flex; align-items: center; gap: var(--spacing-2); padding: var(--spacing-2); border-radius: var(--radius-card); }
 .mini-open { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--spacing-3); text-align: left; min-height: var(--size-touch-min); border-radius: var(--radius-tile); }
 .mini-open .grow { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
@@ -398,7 +400,7 @@ const DJ = {
   cr: { name: 'Cerulean', ini: 'C', genre: 'house', label: 'Pop', set: "That's All", listeners: '1.6k', live: true, onAir: '9:00 – 11:00 PM', elapsed: 1530 },
   eb: { name: 'Ezra Bloom', ini: 'EB', genre: 'lofi', label: 'Lo-fi', set: 'Pillow Tapes', live: false },
 };
-const LIVE_ORDER = ['zb', 'dg', 'ml', 'jr', 'cr'];
+const LIVE_ORDER = ['dg', 'ml', 'jr', 'cr', 'zb'];
 const GENRES = [['all', 'All'], ['house', 'House'], ['lofi', 'Lo-fi'], ['techno', 'Techno'], ['jazz', 'Jazz'], ['ambient', 'Ambient']];
 const DAYS = [['Mon', 12, 'Monday'], ['Tue', 13, 'Tuesday'], ['Wed', 14, 'Wednesday'], ['Thu', 15, 'Thursday'], ['Fri', 16, 'Friday'], ['Sat', 17, 'Saturday'], ['Sun', 18, 'Sunday']];
 const TODAY = 16;
