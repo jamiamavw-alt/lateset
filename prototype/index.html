@@ -93,11 +93,6 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 button:active { transform: scale(.96); transition-duration: var(--motion-duration-fast); transition-timing-function: var(--motion-easing-standard); }
 :focus-visible { outline: 2px solid var(--color-ink); outline-offset: 3px; }
 
-.note { font-size: 12px; font-weight: 600; color: var(--color-ink-muted); text-align: center; max-width: 390px; margin: 0; }
-.note:empty { display: none; }
-.note-bar { display: flex; flex-direction: column; align-items: center; gap: var(--spacing-2); }
-.motion-toggle { min-height: var(--size-touch-min); padding-inline: var(--spacing-4); border-radius: var(--radius-pill); font-size: 13px; font-weight: 700; }
-.motion-toggle[aria-pressed="true"] { background: var(--color-accent); color: var(--color-on-accent); border-color: var(--color-accent); box-shadow: none; }
 
 /* Phone */
 /* Exact iPhone screen (390×844 pt). The whole phone scales down to fit, so the layout never changes shape. */
@@ -107,8 +102,7 @@ button:active { transform: scale(.96); transition-duration: var(--motion-duratio
   transform: scale(var(--s)); transform-origin: 0 0;
   border-radius: 55px; overflow: hidden;
   background: linear-gradient(165deg, var(--color-wall-top), var(--color-wall-mid) 55%, var(--color-wall-bottom));
-  border: 1px solid var(--glass-stroke);
-  box-shadow: 0 24px 60px var(--shadow-medium);
+  box-shadow: 0 0 0 1px var(--glass-stroke), 0 24px 60px var(--shadow-medium);
   isolation: isolate;
 }
 .screen {
@@ -221,9 +215,14 @@ button:active { transform: scale(.96); transition-duration: var(--motion-duratio
 /* Cover type flexes with the cover: max 34px, shrinks so the longest word always fits on one line */
 .art .cover-title { font-family: var(--font-display); font-weight: 800; line-height: .88; letter-spacing: -.02em; text-transform: uppercase; margin: 0; white-space: nowrap; max-width: 100%;
   font-size: clamp(16px, calc((100cqi - 2 * var(--spacing-4)) / (var(--chars, 8) * 0.95)), 34px); }
-.live-status { display: flex; align-items: center; gap: var(--spacing-3); padding: var(--spacing-3) var(--spacing-4); border-radius: var(--radius-tile); background: var(--glass-fill-chip); }
-.eq { display: flex; align-items: flex-end; gap: 3px; height: 20px; width: 24px; }
-.eq i { display: block; width: 4px; border-radius: 2px; background: var(--color-ink); height: 60%; }
+.live-status { display: flex; align-items: center; gap: var(--spacing-3); padding: var(--spacing-2_5) var(--spacing-3_5); border-radius: var(--radius-tile); background: var(--glass-fill-raised); }
+.live-status p { margin: 0; line-height: 1.3; }
+.live-status .status-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.live-status .status-title { font-size: 13px; font-weight: 700; }
+.eq { flex-shrink: 0; display: flex; align-items: flex-end; gap: 3px; height: 18px; width: 25px; overflow: hidden; }
+.eq i { display: block; width: 4px; border-radius: 2px; background: var(--color-ink); height: 5px; }
+.eq.on i:nth-child(1) { height: 10px; } .eq.on i:nth-child(2) { height: 18px; }
+.eq.on i:nth-child(3) { height: 6px; } .eq.on i:nth-child(4) { height: 14px; }
 :root[data-motion="full"] .eq.on i { animation: eq var(--motion-duration-eq) var(--motion-easing-loop) infinite; }
 :root[data-motion="full"] .eq.on i:nth-child(2) { animation-delay: 150ms; }
 :root[data-motion="full"] .eq.on i:nth-child(3) { animation-delay: 300ms; }
@@ -249,7 +248,12 @@ button:active { transform: scale(.96); transition-duration: var(--motion-duratio
 .fav .wrap { position: relative; padding-bottom: 6px; }
 .fav .badge { position: absolute; left: 50%; bottom: -2px; transform: translateX(-50%); border: 2px solid var(--color-control); }
 .fav .name { font-size: 12px; font-weight: 600; line-height: 1.25; }
-.avatar { width: 56px; height: 56px; border-radius: var(--radius-pill); display: grid; place-items: center; color: var(--color-on-accent); background: linear-gradient(135deg, var(--color-genre-house), var(--color-genre-house-end)); }
+.account { gap: var(--spacing-3_5); padding: var(--spacing-3_5); }
+.account .name { font-size: 18px; font-weight: 800; line-height: 1.3; margin: 0; }
+.account .caption { margin: 0; }
+.avatar { flex-shrink: 0; width: 60px; height: 60px; border-radius: var(--radius-pill); display: grid; place-items: center; color: var(--color-on-accent);
+  background: linear-gradient(143deg, var(--color-art-deep-start) 14%, var(--color-art-deep-mid) 50%, var(--color-art-deep-end) 86%); }
+.avatar svg { width: 24px; height: 24px; }
 .saved.removed .grow, .saved.removed .tile { opacity: .45; }
 
 /* Tab bar */
@@ -270,6 +274,30 @@ button:active { transform: scale(.96); transition-duration: var(--motion-duratio
 .sc-frame { position: fixed; left: 0; bottom: 0; width: 1px; height: 1px; border: 0; opacity: 0; pointer-events: none; }
 .sp-frame { position: fixed; left: 0; bottom: 0; width: 300px; height: 80px; overflow: hidden; opacity: 0; pointer-events: none; z-index: -1; }
 
+/* Loading screen: covers everything until the Spotify player API is ready */
+.loader { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--spacing-3);
+  background: linear-gradient(165deg, var(--color-wall-top), var(--color-wall-mid) 55%, var(--color-wall-bottom));
+  transition: opacity var(--motion-duration-slow) var(--motion-easing-exit); }
+.loader.done { opacity: 0; pointer-events: none; }
+.loader-icons { display: flex; gap: var(--spacing-2); font-size: 40px; line-height: 1; }
+.loader-icons span { display: inline-block; }
+.loader p { margin: 0; font-size: 16px; font-weight: 700; color: var(--color-ink); }
+:root[data-motion="full"] .loader-icons span { animation: breathe var(--motion-duration-pulse) var(--motion-easing-loop) infinite; }
+:root[data-motion="full"] .loader-icons span:nth-child(2) { animation-delay: 200ms; }
+:root[data-motion="full"] .loader-icons span:nth-child(3) { animation-delay: 400ms; }
+
+/* Credit, bottom right of the page */
+.credit { position: fixed; right: max(var(--spacing-4), env(safe-area-inset-right, 0px)); bottom: max(var(--spacing-3), env(safe-area-inset-bottom, 0px)); margin: 0;
+  font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--color-accent); }
+
+/* Phones: the app fills the screen at 1:1, no device frame or page background around it */
+@media (max-width: 500px) {
+  body { display: block; padding: 0; }
+  .stage { width: 100vw; height: 100vh; height: 100dvh; }
+  .phone { width: 100vw; height: 100vh; height: 100dvh; transform: none; border-radius: 0; border: 0; box-shadow: none; }
+  .credit { right: var(--spacing-4); bottom: 2px; z-index: 6; } /* in the gap under the tab bar */
+}
+
 /* Toast */
 .toast { position: absolute; left: var(--spacing-6); right: var(--spacing-6); bottom: calc(var(--tabbar-clearance) + var(--spacing-2)); z-index: 6; display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-3); padding: var(--spacing-2) var(--spacing-2) var(--spacing-2) var(--spacing-4); border-radius: var(--radius-tile); background: var(--color-ink); color: var(--color-on-accent); font-size: 13px; font-weight: 600; }
 .toast button { min-height: var(--size-touch-min); padding-inline: var(--spacing-3); font-weight: 800; color: var(--color-on-accent); }
@@ -279,13 +307,9 @@ button:active { transform: scale(.96); transition-duration: var(--motion-duratio
 
 </head>
 <body>
-<div class="note-bar">
-  <p class="note">Clickable preview built from the Figma Page Mocks. Tap a live card, the tab bar, or a saved set.</p>
-  <button id="motion-toggle" class="motion-toggle glass-chip" aria-pressed="true">Motion: full</button>
-  <p class="note" id="motion-hint"></p>
-</div>
-
-<div class="stage" id="stage"><div class="phone" id="phone">
+<div class="loader" id="loader" role="status"><span class="loader-icons" aria-hidden="true"><span>💖</span><span>🎶</span><span>🎀</span></span><p>Loading…</p></div>
+<p class="credit">Created by Deia Green and Jamie Vanderwall 🎀</p>
+<div class="stage" id="stage" inert><div class="phone" id="phone">
   <section class="screen" id="s-live" aria-label="Live"></section>
   <section class="screen" id="s-schedule" aria-label="Schedule" hidden></section>
   <section class="screen" id="s-playing" aria-label="Playing" hidden></section>
@@ -336,8 +360,8 @@ const TAB_LABEL = { live: 'Live', schedule: 'Schedule', playing: 'Playing', prof
 const DJ = {
   zb: { name: 'Zara Bloom', ini: 'ZB', genre: 'house', label: 'House', set: 'Late Bloom', listeners: '1.2k', live: true, onAir: '8:00 – 10:00 PM', elapsed: 134 },
   dg: { name: 'Deia Green', ini: 'DG', genre: 'lofi', label: 'R&B', set: 'Dark and Stormy', listeners: '8.8k', live: true, onAir: '7:30 – 9:30 PM', elapsed: 2710 },
-  ml: { name: 'DJ MarBear', ini: 'DM', genre: 'techno', label: 'Techno', set: 'Concrete Sun', listeners: '2.4k', live: true, onAir: '7:00 – 9:00 PM', elapsed: 3925 },
-  jr: { name: 'Jamie Rose', ini: 'JR', genre: 'house', label: 'Disco House', set: 'Low Tide Hours', listeners: '12', live: true, onAir: '8:15 – 9:45 PM', elapsed: 420 },
+  ml: { name: 'DJ MarBear', ini: 'DM', genre: 'techno', label: 'Techno', set: 'Adivas', listeners: '2.4k', live: true, onAir: '7:00 – 9:00 PM', elapsed: 3925 },
+  jr: { name: 'Jamie Rose', ini: 'JR', genre: 'house', label: 'Disco House', set: 'Diva Down', listeners: '222', live: true, onAir: '8:15 – 9:45 PM', elapsed: 420 },
   ms: { name: 'Mirae Song', ini: 'MS', genre: 'ambient', label: 'Ambient', set: 'Soft Static', live: false },
   jl: { name: 'Juniper Lake', ini: 'JL', genre: 'jazz', label: 'Jazz', set: 'Rose Hour Sessions', live: false },
   tv: { name: 'Theo Vance', ini: 'TV', genre: 'techno', label: 'Techno', set: 'Night Shift', live: false },
@@ -355,7 +379,7 @@ const SLOTS = [
   { dj: 'eb', time: '1:00 AM', dur: '2 hr', state: 'next', remind: false },
 ];
 const FAVS = ['zb', 'ml', 'jl', 'ms', 'jr'];
-const USER_NAME = 'Alex Rivera'; // sample listener
+const USER_NAME = 'Deia Green'; // sample listener
 function setToggle(btn, on, iconOn, iconOff, label) {
   btn.setAttribute('aria-pressed', on);
   btn.innerHTML = on ? iconOn : iconOff;
@@ -365,15 +389,15 @@ const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 const SAVED = [
   { id: 1, title: 'Late Bloom', dj: 'zb', date: 'Oct 9', dur: '2 hr', len: 7200 },
   { id: 2, title: 'Rose Hour Sessions', dj: 'jl', date: 'Oct 8', dur: '2 hr', len: 7200 },
-  { id: 3, title: 'Concrete Sun', dj: 'ml', date: 'Oct 6', dur: '2 hr', len: 7200 },
+  { id: 3, title: 'Adivas', dj: 'ml', date: 'Oct 6', dur: '2 hr', len: 7200 },
   { id: 4, title: 'Soft Static', dj: 'ms', date: 'Oct 3', dur: '90 min', len: 5400 },
-  { id: 5, title: 'Low Tide Hours', dj: 'jr', date: 'Oct 1', dur: '4 min', len: 220 },
+  { id: 5, title: 'Diva Down', dj: 'jr', date: 'Oct 1', dur: '4 min', len: 220 },
 ];
 
 const st = {
   tab: 'live', genre: 'all', day: TODAY,
   player: null, liveOn: false, liveFav: {},
-  track: { title: 'Low Tide Hours', dj: 'jr', pos: 42, len: 220 }, playing: false,
+  track: { title: 'Diva Down', dj: 'jr', pos: 42, len: 220 }, playing: false,
   shuffle: false, repeat: true, trackFav: false,
   removed: new Set(),
 };
@@ -397,8 +421,8 @@ function fitCovers() { // exact fit once the font has loaded; CSS above is the f
   });
 }
 function fitStage() {
-  const bar = document.querySelector('.note-bar');
-  const availH = innerHeight - (bar ? bar.offsetHeight : 0) - 56;
+  if (matchMedia('(max-width: 500px)').matches) { $('stage').style.setProperty('--s', 1); return; }
+  const availH = innerHeight - 56;
   const availW = document.body.clientWidth - 32;
   $('stage').style.setProperty('--s', Math.max(0.5, Math.min(1, availW / 390, availH / 844)));
 }
@@ -470,23 +494,14 @@ function renderSchedule() {
 /* ---------- Live player ---------- */
 const reduced = () => document.documentElement.dataset.motion === 'reduced';
 const mq = matchMedia('(prefers-reduced-motion: reduce)');
-function setMotion(m) {
-  document.documentElement.dataset.motion = m;
-  const b = $('motion-toggle');
-  b.setAttribute('aria-pressed', m === 'full');
-  b.textContent = m === 'full' ? 'Motion: full' : 'Motion: reduced';
-  $('motion-hint').textContent = [
-    mq.matches ? 'Your computer has Reduce motion on, so the prototype starts reduced.' : '',
-    window.LATESET_TRACKS ? '' : 'Music plays in the downloaded version; here playback is simulated.',
-  ].filter(Boolean).join(' ');
-}
+function setMotion(m) { document.documentElement.dataset.motion = m; }
 function riseFrom(el, fromEl) {
   if (!el.animate) return;
   if (reduced() || !fromEl) { el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250, easing: 'ease-in-out' }); return; }
   const ph = $('phone').getBoundingClientRect(), r = fromEl.getBoundingClientRect();
-  const k = ph.width / 390;
+  const p = $('phone'), k = ph.width / p.offsetWidth;
   const t = (r.top - ph.top) / k, l = (r.left - ph.left) / k;
-  const rt = 390 - l - r.width / k, bt = 844 - t - r.height / k;
+  const rt = p.offsetWidth - l - r.width / k, bt = p.offsetHeight - t - r.height / k;
   el.animate([
     { clipPath: `inset(${t}px ${rt}px ${bt}px ${l}px round 24px)`, opacity: .35, transform: 'translateY(8px)' },
     { clipPath: 'inset(0px 0px 0px 0px round 0px)', opacity: 1, transform: 'none' },
@@ -494,8 +509,9 @@ function riseFrom(el, fromEl) {
 }
 function exitDown(el, done) {
   if (reduced() || !el.animate) { done(); return; }
-  el.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateY(48px)', opacity: 0 }],
-    { duration: parseFloat(cssVar('--motion-duration-base')) || 250, easing: cssVar('--motion-easing-exit') || 'ease-in', fill: 'forwards' }).onfinish = done;
+  const a = el.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateY(48px)', opacity: 0 }],
+    { duration: parseFloat(cssVar('--motion-duration-base')) || 250, easing: cssVar('--motion-easing-exit') || 'ease-in', fill: 'forwards' });
+  a.onfinish = () => { el.hidden = true; a.cancel(); done(); }; // hide first, then drop the held end state so the next open isn't invisible
 }
 function renderPlayer(rise, fromEl) {
   const d = DJ[st.player];
@@ -515,11 +531,11 @@ function renderPlayer(rise, fromEl) {
       <div><h1 class="title-lg">${esc(d.set)}</h1><p class="body-md">${esc(d.name)} · <span class="tnum">${d.listeners}</span> listening</p></div>
       <div class="live-status">
         <div class="eq ${st.liveOn ? 'on' : ''}" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-        <div class="grow" style="flex:1;min-width:0" aria-live="polite">
-          <p class="title-sm">${st.liveOn ? 'Listening live' : 'Stopped'}</p>
+        <div class="status-text" aria-live="polite">
+          <p class="status-title">${st.liveOn ? 'Listening live' : 'Stream stopped'}</p>
           <p class="caption">On air ${d.onAir}</p>
         </div>
-        <span class="caption tnum" id="live-elapsed" aria-label="Time since you tuned in">${fmt(d.elapsed)}</span>
+        <span class="caption tnum" id="live-elapsed" aria-label="Time since you tuned in">${st.liveOn ? fmt(d.elapsed) : '0:00'}</span>
       </div>
       <button class="big-play" data-livetoggle aria-label="${st.liveOn ? 'Stop listening to ' : 'Start listening to '}${esc(d.name)}">${st.liveOn ? I.stop : I.play}</button>
     </div>
@@ -528,6 +544,7 @@ function renderPlayer(rise, fromEl) {
       <div class="grow"><span class="eyebrow" style="font-size:12px">Up next · <span class="tnum">10:00 PM</span></span><span class="title-md clip">Mirae Song · Ambient</span></div>
       <span class="ib" aria-hidden="true">${I.right}</span>
     </button>`;
+  el.getAnimations().forEach(a => a.cancel());
   el.hidden = false;
   fitCovers();
   if (rise) { el.scrollTop = 0; riseFrom(el, fromEl); }
@@ -572,7 +589,8 @@ function paintLiveState() {
   const d = DJ[st.player];
   el.querySelector('.eq').classList.toggle('on', st.liveOn);
   el.querySelector('.panel-top .badge .dot').classList.toggle('pulse', st.liveOn);
-  el.querySelector('.live-status .title-sm').textContent = st.liveOn ? 'Listening live' : 'Stopped';
+  el.querySelector('.live-status .status-title').textContent = st.liveOn ? 'Listening live' : 'Stream stopped';
+  $('live-elapsed').textContent = st.liveOn ? fmt(d.elapsed) : '0:00';
   const b = el.querySelector('[data-livetoggle]');
   b.innerHTML = st.liveOn ? I.stop : I.play;
   b.setAttribute('aria-label', (st.liveOn ? 'Stop listening to ' : 'Start listening to ') + d.name);
@@ -596,9 +614,9 @@ function paintSeek() {
 function renderProfile() {
   $('s-profile').innerHTML = `
     <div class="panel-top"><h1 class="display">Profile</h1><button class="ib glass-chip" aria-label="Settings">${I.gear}</button></div>
-    <div class="glass-card row" style="padding:var(--spacing-4)">
+    <div class="glass-card row account">
       <div class="avatar" aria-hidden="true">${I.profile}</div>
-      <div class="grow"><h2 class="title-md" style="font-size:18px">${esc(USER_NAME)}</h2><p class="caption tnum">${plural(FAVS.length, 'favorite DJ', 'favorite DJs')} · ${plural(SAVED.length - st.removed.size, 'saved set', 'saved sets')}</p></div>
+      <div class="grow"><h2 class="name">${esc(USER_NAME)}</h2><p class="caption tnum">${plural(FAVS.length, 'favorite DJ', 'favorite DJs')} · ${plural(SAVED.length - st.removed.size, 'saved set', 'saved sets')}</p></div>
     </div>
     <h2 class="eyebrow section-head">Favorite DJs</h2>
     <div class="favs">
@@ -611,7 +629,7 @@ function renderProfile() {
         <article class="glass-card row saved ${off ? 'removed' : ''}">
           <div class="tile sm g-${d.genre}" aria-hidden="true">${initials(x.title)}</div>
           <div class="grow"><h3 class="title-md clip">${esc(x.title)}</h3><p class="body-sm clip">${esc(d.name)} · ${x.date} · ${x.dur}</p></div>
-          <button class="ib" data-unsave="${x.id}" aria-pressed="${!off}" aria-label="${off ? 'Save ' : 'Remove '}${esc(x.title)} ${off ? 'to' : 'from'} saved sets">${off ? I.mark : I.markOn}</button>
+          <button class="ib" data-unsave="${x.id}" aria-pressed="${!off}" aria-label="${off ? 'Save ' : 'Remove '}${esc(x.title)} ${off ? 'to' : 'from'} saved sets">${off ? I.heart : I.heartOn}</button>
           <button class="ib solid" data-playset="${x.id}" aria-label="Play ${esc(x.title)} by ${esc(d.name)}">${I.play}</button>
         </article>`; }).join('')}
     </div>`;
@@ -746,6 +764,7 @@ const audio = (() => {
       }
     }
     return {
+      warm: api,
       ok: () => true,
       load(url, startSec, cb) {
         const u = toUri(url);
@@ -773,6 +792,11 @@ const audio = (() => {
   let active = null;
   const engineFor = u => kind(u) === 'spotify' ? sp : kind(u) === 'soundcloud' && sc.ok() ? sc : null;
   return {
+    // Resolves once every audio API the track list needs has loaded (SoundCloud loads in <head>)
+    warm() {
+      const urls = Object.values(tracks());
+      return urls.some(u => kind(u) === 'spotify') ? sp.warm() : Promise.resolve();
+    },
     available: dj => !!engineFor(tracks()[dj]),
     on: (name, fn) => { handlers[name] = fn; },
     play(dj, startSec, cb) {
@@ -841,7 +865,7 @@ document.getElementById('phone').addEventListener('click', e => {
   if (ds.remind !== undefined) { const sl = SLOTS[+ds.remind]; sl.remind = !sl.remind; b.setAttribute('aria-pressed', sl.remind); b.innerHTML = sl.remind ? I.bellOn : I.bell;
     showToast(`<span>${sl.remind ? 'Reminder set for' : 'Reminder off for'} ${esc(DJ[sl.dj].name)} at ${sl.time}.</span>`); return; }
   if (ds.tune) { st.playing = false; paintPlayButton(); st.player = ds.tune; st.liveOn = true; renderPlayer(true, b.closest('article, .fav') || b); renderTabs(); playLive(ds.tune); return; }
-  if (b.hasAttribute('data-close')) { const back = st.tab; if (st.src === 'live') { audio.pause(); st.src = null; } exitDown($('s-player'), () => { st.liveOn = false; go(back); }); return; }
+  if (b.hasAttribute('data-close')) { const back = st.tab; if (st.src === 'live') { audio.pause(); st.src = null; } exitDown($('s-player'), () => { st.liveOn = false; st.player = null; go(back); }) /* player already slid away: no blur veil on top */; return; }
   if (b.hasAttribute('data-livetoggle')) {
     st.liveOn = !st.liveOn; paintLiveState();
     if (audio.available(st.player)) { if (st.liveOn) playLive(st.player); else { audio.pause(); } } // Stop, never pause-and-resume: Start rejoins at the live point
@@ -873,12 +897,18 @@ document.getElementById('phone').addEventListener('change', e => {
   if (e.target.id === 'seek') { dragging = false; if (st.src === 'demand') audio.seek(st.track.pos); }
 });
 
-$('motion-toggle').addEventListener('click', () => setMotion(reduced() ? 'full' : 'reduced'));
 mq.addEventListener && mq.addEventListener('change', () => setMotion(mq.matches ? 'reduced' : 'full'));
 setMotion(mq.matches ? 'reduced' : 'full');
 fitStage();
 go('live');
 booted = true;
+// Hold the loading screen until Spotify's API is ready; give up after 10s so a blocked network never traps the page
+Promise.race([audio.warm(), new Promise(r => setTimeout(r, 10000))]).catch(() => {}).then(() => {
+  $('stage').inert = false;
+  const l = $('loader'); l.classList.add('done');
+  setTimeout(() => l.remove(), 450);
+  fitCovers();
+});
 </script>
 
 </body>
