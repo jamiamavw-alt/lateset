@@ -701,7 +701,7 @@ function paintSeek() {
 /* ---------- Profile ---------- */
 function renderProfile() {
   $('s-profile').innerHTML = `
-    <div class="panel-top"><h1 class="display">Profile</h1><button class="ib glass-chip" aria-label="Settings">${I.gear}</button></div>
+    <h1 class="display">Profile</h1>
     <div class="glass-card row account">
       <div class="avatar" aria-hidden="true">${I.profile}</div>
       <div class="grow"><h2 class="name">${esc(USER_NAME)}</h2><p class="caption tnum">${plural(FAVS.length, 'favorite DJ', 'favorite DJs')} · ${plural(SAVED.length - st.removed.size, 'saved set', 'saved sets')}</p></div>
